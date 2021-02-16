@@ -1,0 +1,9 @@
+---
+- name: "Create resource groups and networks for {{ az_environment }}"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - azure_resourcegroup
+    - azure_network

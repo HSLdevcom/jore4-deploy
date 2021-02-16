@@ -1,0 +1,19 @@
+---
+- name: "Create common resource group for the subscription"
+  azure_rm_resourcegroup:
+    name: "{{ az_project_name }}-common"
+    location: "{{ az_region_name }}"
+    tags:
+      usage: "production"
+      critical: "yes"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: "Create the main resource group for {{ az_environment }} environment"
+  azure_rm_resourcegroup:
+    name: "{{ az_resource_group_name }}"
+    location: "{{ az_region_name }}"
+    tags:
+      usage: "{{ az_usage_tag_default }}"
+      critical: "{{ az_critical_tag_default }}"
+      requiredUptime: "{{ az_requireduptime_tag_default }}"
+  ignore_errors: "{{ ansible_check_mode }}"

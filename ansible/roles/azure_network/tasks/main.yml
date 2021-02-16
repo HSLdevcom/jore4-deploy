@@ -1,0 +1,25 @@
+---
+- name: Sanity check for CIDR prefix
+  fail:
+    msg: "cidr_prefix {{ cidr_prefix }} is not valid. You should update the variable with a value that was reserved for your environment."
+  when: not cidr_prefix is regex("[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}")
+
+- name: Create Azure Deployment for network
+  azure_rm_deployment:
+    resource_group: "{{ az_resource_group_name }}"
+    location: "{{ az_region_name }}"
+    name: "azure_network"
+    parameters:
+      project:
+        value: "{{ az_project_name }}"
+      environment:
+        value: "{{ az_environment }}"
+      cidrPrefix:
+        value: "{{ cidr_prefix }}"
+      bastionTrustedAddresses:
+        value: "{{ az_bastion_host_trusted_ips }}"
+      gatewayTrustedAddresses:
+        value: "{{ az_gateway_trusted_ips }}"
+    tags:
+      ansible: "workaround"
+    template: "{{ lookup('file', 'templates/network.arm.json') }}"
