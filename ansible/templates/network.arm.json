@@ -1,0 +1,299 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "project": {
+           "type": "string",
+           "metadata": {
+                "description": "The short name of the project. Usually same as the name of the subscription in Azure."
+            }
+        },
+        "environment": {
+           "type": "string",
+           "metadata": {
+                "description": "The target environment. Typically dev, test or prod."
+            }
+        },
+        "cidrPrefix": {
+           "type": "string",
+           "metadata": {
+                "description": "The 24 bit network address prefix for this environment. Enter first three numbers of the IP address, e.g. '10.10.0'"
+            }
+        },
+        "bastionTrustedAddresses": {
+           "type": "array",
+           "metadata": {
+                "description": "The IP addresses allowed to SSH into the environment."
+            },
+            "defaultValue": [
+                "194.100.20.48/28"
+            ]
+        },
+        "gatewayTrustedAddresses": {
+           "type": "array",
+           "metadata": {
+                "description": "The IP addresses allowed to connect to the service."
+            },
+            "defaultValue": [
+                "194.100.20.48/28"
+            ]
+        },
+        "location": {
+           "type": "string",
+           "metadata": {
+                "description": "The region used for the resources."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "vnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the target VNet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-vnet')]"
+        },
+        "privateSubnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the private subnet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-private')]"
+        },
+        "publicSubnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the public subnet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-public')]"
+        },
+        "gatewaySubnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the gateway subnet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-gateway')]"
+        },
+        "privateNsgName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the private Network Security Group."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-nsg-private')]"
+        },
+        "publicNsgName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the public Network Security Group."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-nsg-public')]"
+        },
+        "gatewayNsgName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the gateway Network Security Group."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-nsg-gateway')]"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-11-01",
+            "name": "[parameters('vnetName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('privateNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('publicNsgName'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('gatewayNsgName'))]"
+            ],
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[concat(parameters('cidrPrefix'), '.0/24')]"
+                    ]
+                },
+                "subnets": [
+                    {
+                        "name": "[parameters('privateSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[concat(parameters('cidrPrefix'), '.0/25')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('privateNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[parameters('publicSubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[concat(parameters('cidrPrefix'), '.240/29')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('publicNsgName'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[parameters('gatewaySubnetName')]",
+                        "properties": {
+                            "addressPrefix": "[concat(parameters('cidrPrefix'), '.248/29')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('gatewayNsgName'))]"
+                            }
+                        }
+                    }
+
+                ],
+                "virtualNetworkPeerings": [],
+                "enableDdosProtection": false,
+                "enableVmProtection": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[parameters('publicNsgName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow_SSH",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "22",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": "[parameters('bastionTrustedAddresses')]",
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "deny_internet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[parameters('gatewayNsgName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "allow_HTTPS",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 100,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": "[parameters('gatewayTrustedAddresses')]",
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "allow_HTTP",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "80",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 150,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "allow_Azure",
+                        "properties": {
+                            "protocol": "TCP",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "65200-65535",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 200,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefixes": []
+                        }
+                    },
+                    {
+                        "name": "deny_internet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2019-11-01",
+            "name": "[parameters('privateNsgName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "deny_internet",
+                        "properties": {
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Deny",
+                            "priority": 1000,
+                            "direction": "Inbound",
+                            "sourcePortRanges": [],
+                            "destinationPortRanges": [],
+                            "sourceAddressPrefixes": [],
+                            "destinationAddressPrefixes": []
+                        }
+                    }
+                ]
+            }
+        }
+    ],
+    "outputs": {},
+    "functions": []
+}

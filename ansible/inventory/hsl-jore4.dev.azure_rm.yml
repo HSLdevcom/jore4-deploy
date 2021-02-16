@@ -1,0 +1,2 @@
+# required for all azure_rm inventory plugin configs
+plugin: azure_rm

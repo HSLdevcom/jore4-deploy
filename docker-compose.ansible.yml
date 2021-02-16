@@ -1,0 +1,17 @@
+version: "3"
+services:
+  ansible:
+    image: hsldevcom/azure-ansible:1.2.1
+    container_name: ansible
+    volumes:
+      - ./ansible:/etc/ansible:ro
+      - ./ansible/.cache:/cache:rw
+      - ~/.azure:/home/ansible/.azure:rw
+    environment:
+      SKIP_LOGIN: "true"
+    networks:
+      - ansible-network
+
+networks:
+  ansible-network:
+    name: ansible_network

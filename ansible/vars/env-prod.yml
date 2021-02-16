@@ -1,0 +1,16 @@
+---
+# Prod environment specific variables here
+az_environment: "prod"
+cidr_prefix: "10.223.32"
+ssh_vnet_cidr: "{{ cidr_prefix }}.*"
+dns_name: "jore.hsl.fi"
+
+az_usage_tag_default: "production"
+az_critical_tag_default: "no"
+az_requireduptime_tag_default: "always-on"
+
+az_bastion_host_trusted_ips:
+  - "194.100.20.48/28" # HSL corporate wifi (including Journey & Louvre), add more entries for remote work here when needed
+
+az_gateway_trusted_ips:
+  - "194.100.20.48/28" # HSL corporate wifi (including Journey & Louvre), add more entries for remote work here when needed
