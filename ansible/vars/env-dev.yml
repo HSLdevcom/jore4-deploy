@@ -17,3 +17,7 @@ az_bastion_host_trusted_ips:
 # IP addresses that can see the deployed application
 az_gateway_trusted_ips:
   - "*"
+
+# Key vault
+az_key_vault_name: "{{ az_resource_group_name }}-vault"
+az_key_vault_user: "{{ az_key_vault_name }}-user"
