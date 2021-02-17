@@ -7,6 +7,7 @@
   - [How to Run](#how-to-run)
   - [Scripts](#scripts)
     - [1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network)
+    - [2. Provisioning key vaults](#2-provisioning-key-vaults)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -78,3 +79,29 @@ Creates basic network setup:
   - `hsl-jore4-dev-subnet-gateway` (public subnet to allow access from Internet (e.g. from HTTPS))
 
 The subnets can freely access resources between each other.
+
+### 2. Provisioning key vaults
+
+Run in Ansible shell:
+
+```
+playdev play-provision-key-vault.yml
+```
+
+Provisions a common and an environment-specific Azure Key Vault and users to access them with.
+
+- In `hsl-jore4-common` resource group:
+  - `hsl-jore4-common-vault` is meant to store common secrets (e.g. TLS certificate)
+  - `hsl-jore4-common-vault-user` is a managed identity with READ permissions that can be used to
+    access secrets from this vault. E.g. by the application gateway to fetch the certificate.
+- In `hsl-jore4-dev` resource group:
+  - `hsl-jore4-dev-vault` is environment-specific and is used for storing secrets the
+    application needs
+  - `hsl-jore4-dev-vault-user` is a managed identity with READ permissions that can be used to
+    access secrets from this vault.
+
+If the play complains about an existing soft-deleted Key Vault, re-run the play with
+`-e key_vault_create_mode=recover`.
+
+_Note that key vault's access policies are reset whenever you run this playbook. So if you manually
+added access policies, they will disappear. This is a limitation of Azure (4.2.2020)._
