@@ -8,6 +8,7 @@
   - [Scripts](#scripts)
     - [1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network)
     - [2. Provisioning key vaults](#2-provisioning-key-vaults)
+    - [3. Provisioning a log workspace](#3-provisioning-a-log-workspace)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -105,3 +106,18 @@ If the play complains about an existing soft-deleted Key Vault, re-run the play 
 
 _Note that key vault's access policies are reset whenever you run this playbook. So if you manually
 added access policies, they will disappear. This is a limitation of Azure (4.2.2020)._
+
+### 3. Provisioning a log workspace
+
+```
+playdev play-provision-log-analytics.yml
+```
+
+Provisions an Azure Log Analytics workspace for the subscription. This is where all logs will be
+collected (including the Kubernetes pods logs).
+
+- In `hsl-jore4-common` resource group:
+  - `hsl-jore4-log-analytics` is where all the log messages are stored
+
+Should also manually set up Security Center auto-provisioning for the subscription. See
+https://docs.microsoft.com/en-us/azure/security-center/security-center-enable-data-collection

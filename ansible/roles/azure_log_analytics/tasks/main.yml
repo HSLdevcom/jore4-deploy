@@ -1,0 +1,12 @@
+---
+- name: Create Azure Deployment for log analytics workspace
+  azure.azcollection.azure_rm_deployment:
+    resource_group: "{{ az_project_name }}-common"
+    location: "{{ az_region_name }}"
+    name: "azure_loganalytics"
+    parameters:
+      project:
+        value: "{{ az_project_name }}"
+    tags:
+      ansible: "workaround"
+    template: "{{ lookup('file', 'templates/loganalytics.arm.json') }}"
