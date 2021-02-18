@@ -1,0 +1,150 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "project": {
+           "type": "string",
+           "metadata": {
+                "description": "The short name of the project. Usually same as the name of the subscription in Azure."
+            }
+        },
+        "location": {
+           "type": "string",
+           "metadata": {
+                "description": "The region used for the resources."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "workspaceName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the Log Analytics workspace."
+            },
+            "defaultValue": "[concat(parameters('project'), '-log-analytics')]"
+        }
+    },
+    "resources": [
+        {
+            "type": "microsoft.operationalinsights/workspaces",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[parameters('workspaceName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "sku": {
+                    "name": "pergb2018"
+                },
+                "retentionInDays": 31
+            },
+            "resources": [
+                
+            ]
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('AgentHealthAssessment(', parameters('workspaceName'), ')')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]"
+            ],
+            "plan": {
+                "name": "[concat('AgentHealthAssessment(', parameters('workspaceName'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/AgentHealthAssessment",
+                "publisher": "Microsoft"
+            },
+            "properties": {
+                "workspaceResourceId": "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]",
+                "containedResources": [
+                    "[concat(resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName')), concat('/views/', 'AgentHealthAssessment(', parameters('workspaceName'), ')'))]"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('InfrastructureInsights(', parameters('workspaceName'), ')')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]"
+            ],
+            "plan": {
+                "name": "[concat('InfrastructureInsights(', parameters('workspaceName'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/InfrastructureInsights",
+                "publisher": "Microsoft"
+            },
+            "properties": {
+                "workspaceResourceId": "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]",
+                "containedResources": [
+                    "[concat(resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName')), concat('/views/', 'InfrastructureInsights(', parameters('workspaceName'), ')'))]"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('ServiceMap(', parameters('workspaceName'), ')')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]"
+            ],
+            "plan": {
+                "name": "[concat('ServiceMap(', parameters('workspaceName'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/ServiceMap",
+                "publisher": "Microsoft"
+            },
+            "properties": {
+                "workspaceResourceId": "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]",
+                "containedResources": [
+                    "[concat(resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName')), concat('/views/', 'ServiceMap(', parameters('workspaceName'), ')'))]"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('WireData2(', parameters('workspaceName'), ')')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]"
+            ],
+            "plan": {
+                "name": "[concat('WireData2(', parameters('workspaceName'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/WireData2",
+                "publisher": "Microsoft"
+            },
+            "properties": {
+                "workspaceResourceId": "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]",
+                "containedResources": [
+                    "[concat(resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName')), concat('/views/', 'WireData2(', parameters('workspaceName'), ')'))]"
+                ]
+            }
+        },
+        {
+            "type": "Microsoft.OperationsManagement/solutions",
+            "apiVersion": "2015-11-01-preview",
+            "name": "[concat('Updates(', parameters('workspaceName'), ')')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]"
+            ],
+            "plan": {
+                "name": "[concat('Updates(', parameters('workspaceName'), ')')]",
+                "promotionCode": "",
+                "product": "OMSGallery/Updates",
+                "publisher": "Microsoft"
+            },
+            "properties": {
+                "workspaceResourceId": "[resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName'))]",
+                "containedResources": [
+                    "[concat(resourceId('microsoft.operationalinsights/workspaces', parameters('workspaceName')), concat('/views/', 'Updates(', parameters('workspaceName'), ')'))]"
+                ]
+            }
+        }
+    ],
+    "outputs": {},
+    "functions": []
+}
