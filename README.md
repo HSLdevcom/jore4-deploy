@@ -5,10 +5,12 @@
 - [jore4-deploy](#jore4-deploy)
   - [Preliminaries](#preliminaries)
   - [How to Run](#how-to-run)
-  - [Scripts](#scripts)
+- [Scripts](#scripts)
+  - [Provisioning](#provisioning)
     - [1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network)
     - [2. Provisioning key vaults](#2-provisioning-key-vaults)
     - [3. Provisioning a log workspace](#3-provisioning-a-log-workspace)
+    - [4. Provisioning an application gateway](#4-provisioning-an-application-gateway)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -42,7 +44,7 @@ exit the shell, just type `exit`.
 There are preconfigured aliases (`playdev`, `playtest`, `playprod`) in the interactive shell to
 simplify running the scripts against a chosen environment.
 
-## Scripts
+# Scripts
 
 The following scripts either provision (create) resources to the chosen environment (dev, test,
 prod) or configure them. They don't necessarily need to be done in this order, however it's advised
@@ -54,6 +56,8 @@ the script description.
 
 _For simplicity, the scripts below are only showing what happens in the DEV environment. The exact
 same outcome is expected when using the `playtest` and `playprod` aliases._
+
+## Provisioning
 
 ### 1. Provisioning resource groups and network
 
@@ -123,3 +127,22 @@ collected (including the Kubernetes pods logs).
 
 You should also manually set up Security Center auto-provisioning for the subscription ("jore4").
 See https://docs.microsoft.com/en-us/azure/security-center/security-center-enable-data-collection
+
+### 4. Provisioning an application gateway
+
+```
+playdev play-provision-appgateway.yml
+```
+
+Provisions an Azure Application Gateway for the DEV environment. This is what does the routing and
+load balancing of the HTTP requests.
+
+- In `hsl-jore4-dev` resource group:
+  - `hsl-jore4-dev-appgw` is the application gateway to serve the services of the DEV environment.
+  - `hsl-jore4-dev-appgw-pip` is the public IP address the application gateway will be available on.
+
+Note that when first provisioning this, there are no certificates attached, neither are any listeners
+created. Those will be automatically created by Kubernetes's Application Gateway Ingress Controller
+(AGIC). AGIC also does all the necessary changes whenever you create/modify/delete services from the
+Kubernetes cluster. More info at:
+https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview
