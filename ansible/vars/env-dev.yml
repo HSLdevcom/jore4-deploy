@@ -21,3 +21,7 @@ az_gateway_trusted_ips:
 # Key vault
 az_key_vault_name: "{{ az_resource_group_name }}-vault"
 az_key_vault_user: "{{ az_key_vault_name }}-user"
+
+# Application Gateway
+az_gateway_name: "{{ az_resource_group_name }}-appgw"
+az_gateway_publicip_name: "{{ az_resource_group_name }}-appgw-pip"

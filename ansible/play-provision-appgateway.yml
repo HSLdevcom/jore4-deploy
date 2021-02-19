@@ -1,0 +1,8 @@
+---
+- name: "Deploy Application Gateway for {{ az_environment }}"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - role: azure_appgateway
