@@ -1,0 +1,11 @@
+- name: Create Azure Deployment for the Application Gateway
+  azure_rm_deployment:
+    resource_group: "{{ az_resource_group_name }}"
+    location: "{{ az_region_name }}"
+    name: "azure_appgw"
+    parameters:
+      project:
+        value: "{{ az_project_name }}"
+      environment:
+        value: "{{ az_environment }}"
+    template: "{{ lookup('file', 'templates/applicationgateway.arm.json') }}"
