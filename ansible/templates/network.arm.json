@@ -124,9 +124,26 @@
                         }
                     },
                     {
+                        "name": "[concat(parameters('privateSubnetName'),'-aci')]",
+                        "properties": {
+                            "addressPrefix": "[concat(parameters('cidrPrefix'), '.128/26')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('privateNsgName'))]"
+                            },
+                            "delegations": [
+                                {
+                                    "name": "aciDelegation",
+                                    "properties": {
+                                        "serviceName": "Microsoft.ContainerInstance/containerGroups"
+                                    }
+                                }
+                            ],
+                        }
+                    },
+                    {
                         "name": "[parameters('publicSubnetName')]",
                         "properties": {
-                            "addressPrefix": "[concat(parameters('cidrPrefix'), '.240/29')]",
+                            "addressPrefix": "[concat(parameters('cidrPrefix'), '.232/29')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('publicNsgName'))]"
                             }
@@ -135,7 +152,7 @@
                     {
                         "name": "[parameters('gatewaySubnetName')]",
                         "properties": {
-                            "addressPrefix": "[concat(parameters('cidrPrefix'), '.248/29')]",
+                            "addressPrefix": "[concat(parameters('cidrPrefix'), '.240/28')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('gatewayNsgName'))]"
                             }
@@ -210,7 +227,7 @@
                             "direction": "Inbound",
                             "sourcePortRanges": [],
                             "destinationPortRanges": [],
-                            "sourceAddressPrefixes": "[parameters('gatewayTrustedAddresses')]",
+                            "sourceAddressPrefix": "*",
                             "destinationAddressPrefixes": []
                         }
                     },

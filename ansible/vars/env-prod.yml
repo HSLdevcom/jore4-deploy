@@ -9,8 +9,11 @@ az_usage_tag_default: "production"
 az_critical_tag_default: "no"
 az_requireduptime_tag_default: "always-on"
 
+# IP addressees that can access and modify the infrastructure
 az_bastion_host_trusted_ips:
   - "194.100.20.48/28" # HSL corporate wifi (including Journey & Louvre), add more entries for remote work here when needed
+  - "5.250.167.13/32" # Vincit VPN
 
+# IP addresses that can see the deployed application
 az_gateway_trusted_ips:
-  - "194.100.20.48/28" # HSL corporate wifi (including Journey & Louvre), add more entries for remote work here when needed
+  - "*"
