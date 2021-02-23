@@ -1,41 +1,53 @@
-<!-- npx doctoc README.md -->
+# jore4-deploy
+
+Deployment scripts for provisioning and configuring JORE4 infrastructure in Azure.
+
+# Table of Contents
+
+<!-- regenerate with: npx doctoc README.md -->
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [jore4-deploy](#jore4-deploy)
-  - [Preliminaries](#preliminaries)
-  - [How to Run](#how-to-run)
+- [Preliminaries](#preliminaries)
+- [How to Run](#how-to-run)
+- [Roles](#roles)
 - [Scripts](#scripts)
   - [Provisioning](#provisioning)
     - [1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network)
     - [2. Provisioning key vaults](#2-provisioning-key-vaults)
     - [3. Provisioning a log workspace](#3-provisioning-a-log-workspace)
     - [4. Provisioning an application gateway](#4-provisioning-an-application-gateway)
+    - [5. Provisioning a Kubernetes cluster](#5-provisioning-a-kubernetes-cluster)
+      - [Configuration](#configuration)
+      - [Docker images](#docker-images)
+      - [Networking](#networking)
+      - [Nodes, ACI burst](#nodes-aci-burst)
+      - [Application Gateway Ingress Controller](#application-gateway-ingress-controller)
+      - [Accessing the Cluster](#accessing-the-cluster)
+      - [Troubleshooting](#troubleshooting)
+  - [Configuration](#configuration-1)
+    - [Adding services to Kubernetes cluster](#adding-services-to-kubernetes-cluster)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
-# jore4-deploy
-
-Deployment scripts for provisioning and configuring JORE4 infrastructure in Azure.
-
-## Preliminaries
+# Preliminaries
 
 - An Azure subscription
 - Azure CLI (at least version 2.19.1)
 - Docker (with docker-compose)
+- Kubectl and Helm (for deployments to Kubernetes)
 
-## How to Run
+# How to Run
 
-The deployment scripts are in the form of Ansible playbooks. To run the playbooks, we are using the
+The deployment scripts are in the form of Ansible playbooks. To run the playbooks, we are using HSL's
 [hsldevcom/azure-ansible](https://gitlab.hsl.fi/developer-resources/azure-ansible) docker image.
 
-The scripts are based on HSL's [server-based](https://gitlab.hsl.fi/platforms/server-based) platform
-base.
+The scripts are based on HSL's [aks-based](https://gitlab.hsl.fi/platforms/aks-based) platform model.
 
 To start the Ansible interactive shell for executing the scripts:
 
 ```
-start-interactive-shell.sh
+./start-interactive-shell.sh
 ```
 
 This will handle the Azure login for you and start the interactive shell in a docker container. To
@@ -43,6 +55,12 @@ exit the shell, just type `exit`.
 
 There are preconfigured aliases (`playdev`, `playtest`, `playprod`) in the interactive shell to
 simplify running the scripts against a chosen environment.
+
+# Roles
+
+For some scripts, you need to temporarily elevate your role to e.g. create new role bindings for
+managed identities. You may do so here:
+https://portal.azure.com/#blade/Microsoft_Azure_PIMCommon/ActivationMenuBlade/azurerbac/provider/azurerbac
 
 # Scripts
 
@@ -146,3 +164,109 @@ created. Those will be automatically created by Kubernetes's Application Gateway
 (AGIC). AGIC also does all the necessary changes whenever you create/modify/delete services from the
 Kubernetes cluster. More info at:
 https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview
+
+### 5. Provisioning a Kubernetes cluster
+
+```
+playdev play-provision-aks.yml
+```
+
+Requires Owner role to run as playbook assigns role bindings as well. To temporarily acquire the
+Owner role, see [Roles](#roles).
+
+_Warning: you may need to rerun the playbook a few times, as some resources (e.g. managed
+identities) are created dynamically while&after Kubernetes is spinning up and the later half of the
+playbook wants to reference them. E.g. AGIC principal id might be missing._
+
+The following resources and resource group are created:
+
+- `hsl-jore4-dev` resource group:
+  - `hsl-jore4-dev-cluster` is the management resource of the Kubernetes cluster.
+- `hsl-jore4-dev-cluster-nodes` resource group that is automatically created and managed by the
+  cluster for grouping the resources used by the cluster
+  - VMs, load balancers, managed identities...
+
+#### Configuration
+
+Note that this script only provisions the cluster, it does not create services. To see how to add
+services to the Kubernetes cluster, see
+[Adding services to Kubernetes cluster](#1-adding-services-to-kubernetes-cluster)
+
+#### Docker images
+
+The current setup assumes that Docker Hub will be used as image storage. In case you need a private
+registry, see how it's provisioned and configured with AKS at
+[aks-based](https://gitlab.hsl.fi/platforms/aks-based) platform model.
+
+#### Networking
+
+This AKS setup uses Azure networking mode and the existing `hsl-jore4-dev-subnet-private` to assign
+IP addresses for pods. This is necessary for using AGIC.
+
+#### Nodes, ACI burst
+
+The initial number of nodes is configurable through `az_aks_initial_node_count` variable. If having
+a burst in load, the ACI plugin will spin up a temporary instance in seconds and kill it when not
+required anymore:
+https://docs.microsoft.com/en-us/azure/architecture/solution-ideas/articles/scale-using-aks-with-aci
+
+ACI burst containers are spun up to `hsl-jore4-dev-subnet-private-aci` subnet.
+
+#### Application Gateway Ingress Controller
+
+As AGIC is still in Preview mode, the following steps have to be done once per subscription to
+manually enable using this module:
+
+- https://docs.microsoft.com/en-us/azure/application-gateway/tutorial-ingress-controller-add-on-new#prerequisites
+- https://docs.microsoft.com/en-us/azure/aks/use-azure-ad-pod-identity#register-the-enablepodidentitypreview
+
+In short:
+
+- Enable pod identity: `az feature register --name EnablePodIdentityPreview --namespace Microsoft.ContainerService`
+- Enable AGIC: `az feature register --name AKS-IngressApplicationGatewayAddon --namespace microsoft.containerservice`
+- Wait until above features are registered: `az feature list -o table --query "[?properties.state == 'Registered'].{Name:name,State:properties.state}"`
+- Confirm changes and reload provider: `az provider register --namespace Microsoft.ContainerService`
+
+#### Accessing the Cluster
+
+Can only access the created Kubernetes cluster from preconfigured IPs
+(`az_bastion_host_trusted_ips` in `env-*.yml`). Access is limited only to the
+`jore4-platform-developers` group users for now.
+
+If still having issues with accessing the cluster, check if the `jore4-platform-developers` group
+was actually added as an AAD admin group to the cluster:
+`az aks show --name hsl-jore4-dev-cluster --resource-group hsl-jore4-dev --query "aadProfile"`
+If not, fix it by rerunning the Kubernetes playbook
+
+#### Troubleshooting
+
+For troubleshooting, see article:
+https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-troubleshoot
+
+If you see Authorization errors in the AGIC pod logs
+(`kubectl logs ingress-appgw-deployment-xxxx --namespace kube-system`), they probably originate from
+the fact that the controller was created before the permissions were assigned in the playbook. Try
+restarting the AGIC controller by setting the number of replicas first to 0 and then 1.
+`kubectl scale deployment ingress-appgw-deployment --replicas=0 --namespace kube-system`
+
+## Configuration
+
+### Adding services to Kubernetes cluster
+
+Adding/updating Kubernetes services does not need Ansible. To deploy JORE4 to Kubernetes from your
+local machine, run `./deploy-to-kubernetes.sh` and choose the environment to log in to. Follow the
+instructions in the command line.
+
+The JORE4 Kubernetes services are deployed to the `hsl-jore4` namespace. All other controllers (AGIC,
+ACI pods) can be found from the `kube-system` namespace.
+
+For troubleshooting, visit `hsl-jore4-dev-cluster` in Azure Portal and see if all Services and
+Ingresses are up. Could also check the pods under Workloads menu.
+
+For debugging with command line, first need to log in to Azure `az login` and then to the proper
+Kubernetes cluster
+`az aks get-credentials --resource-group hsl-jore4-dev --name hsl-jore4-dev-cluster --overwrite-existing`
+
+To see JORE4 pods, use `kubectl get pods --namespace hsl-jore4`, for system pods:
+`kubectl get pods --namespace kube-system`. To check logs, use:
+`kubectl logs [pod id] --namespace [hsl-jore | kube-system]`

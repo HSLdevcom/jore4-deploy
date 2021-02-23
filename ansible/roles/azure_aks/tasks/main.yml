@@ -1,0 +1,73 @@
+---
+- name: Create Azure Deployment for the AKS cluster
+  azure_rm_deployment:
+    resource_group: "{{ az_resource_group_name }}"
+    location: "{{ az_region_name }}"
+    name: "azure_aks"
+    parameters:
+      project:
+        value: "{{ az_project_name }}"
+      environment:
+        value: "{{ az_environment }}"
+      trustedAdminAddresses:
+        value: "{{ az_bastion_host_trusted_ips }}"
+      initialNodeCount:
+        value: "{{ az_aks_initial_node_count }}"
+    tags:
+      ansible: workaround
+    template: "{{ lookup('file', 'templates/aks.arm.json') }}"
+  register: aks_output
+- name: Show deployment outputs
+  debug:
+    var: aks_output.deployment.outputs
+  run_once: true
+
+# Add missing role assignments for Application Gateway Ingress Controller managed identity
+- name: Make AGIC contributor of target Application Gateway
+  command: "az role assignment create --role Contributor --assignee-object-id {{ aks_output.deployment.outputs.agicPrincipalId.value }} --scope {{ aks_output.deployment.outputs.appgwRef.value }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  tags:
+    - agic-preview-fixes
+    - owner-tasks
+- name: Make AGIC reader of target resource group
+  command: "az role assignment create --role Reader --assignee-object-id {{ aks_output.deployment.outputs.agicPrincipalId.value }} --resource-group {{ az_resource_group_name }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  tags:
+    - agic-preview-fixes
+    - owner-tasks
+- name: Make AGIC managed identity operator of target Application Gateway's linked scope
+  command: "az role assignment create --role 'Managed Identity Operator' --assignee-object-id {{ aks_output.deployment.outputs.agicPrincipalId.value }} --scope {{ aks_output.deployment.outputs.appgwLinkedScopeRef.value }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  tags:
+    - agic-preview-fixes
+    - owner-tasks
+
+# Add missing role assignments for ACI Connector managed identity (possibly bug with non-portal deployment, see https://github.com/Azure/AKS/issues/1894 for clues)
+- name: Make ACI Connector network contributor of target subnet
+  command: "az role assignment create --role 'Network Contributor' --assignee-object-id {{ aks_output.deployment.outputs.aciconnectorPrincipalId.value }} --scope {{ aks_output.deployment.outputs.aciSubnetRef.value }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  tags:
+    - aci-fixes
+    - owner-tasks
+
+# Guess AKS admin group based on the subscription name
+- block:
+    - name: "Attempt to assign admin group jore4-platform-developers"
+      shell: "az aks update --name {{ az_resource_group_name }}-cluster --resource-group {{ az_resource_group_name }} --aad-admin-group-object-ids $(az ad group show --group jore4-platform-developers --output tsv --query objectId)"
+      delegate_to: localhost
+      become: false
+      run_once: true
+  rescue:
+    - debug:
+        msg: "Couldn't assign admin group jore4-platform-developers. Maybe the group isn't created yet?"
+  tags:
+    - assign-admin-group
+    - owner-tasks

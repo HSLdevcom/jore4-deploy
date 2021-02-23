@@ -1,0 +1,207 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "project": {
+           "type": "string",
+           "metadata": {
+                "description": "The short name of the project. Usually same as the name of the subscription in Azure."
+            }
+        },
+        "environment": {
+           "type": "string",
+           "metadata": {
+                "description": "The target environment. Typically dev, test or prod."
+            }
+        },
+        "trustedAdminAddresses": {
+            "type": "array",
+            "metadata": {
+                "description": "The list of addresses trusted to connect to AKS API."
+            }
+        },
+        "initialNodeCount": {
+           "type": "int",
+           "metadata": {
+                "description": "The initial number of nodes."
+            },
+           "defaultValue": 1
+        },
+        "location": {
+           "type": "string",
+           "metadata": {
+                "description": "The region used for the resources."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "vnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the target VNet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-vnet')]"
+        },
+        "subnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the node subnet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-private')]"
+        },
+        "vmSize": {
+           "type": "string",
+           "metadata": {
+                "description": "The size of the nodes."
+            },
+            "defaultValue": "Standard_B2ms"
+        },
+        "clusterName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the AKS cluster."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-cluster')]"
+        },
+        "appGwName": {
+            "type": "string",
+            "metadata": {
+                "description": "The name of the application gateway to use as the ingress controller."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-appgw')]"
+        }
+    },
+    "functions": [],
+    "variables": {
+        "subnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('subnetName'))]",
+        "logAnalyticsRef": "[resourceId(concat(parameters('project'),'-common'),'Microsoft.OperationalInsights/workspaces', concat(parameters('project'),'-log-analytics'))]",
+        "appGwRef": "[resourceId('Microsoft.Network/applicationGateways', parameters('appGwName'))]"
+    },
+    "resources": [
+        {
+            "name": "[parameters('clusterName')]",
+            "type": "Microsoft.ContainerService/managedClusters",
+            "apiVersion": "2020-11-01",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Basic",
+                "tier": "Free"
+            },
+            "identity": {
+                "type": "SystemAssigned"
+            },
+            "properties": {
+                "dnsPrefix": "[concat(parameters('clusterName'),'-dns')]",
+                "agentPoolProfiles": [
+                    {
+                        "name": "system",
+                        "count": "[parameters('initialNodeCount')]",
+                        "vmSize": "[parameters('vmSize')]",
+                        "osDiskSizeGB": 0,
+                        "osDiskType": "Managed",
+                        "maxPods": 30,
+                        "type": "VirtualMachineScaleSets",
+                        "availabilityZones": [
+                            "1",
+                            "2",
+                            "3"
+                        ],
+                        "vnetSubnetID": "[variables('subnetRef')]",
+                        "osType": "Linux",
+                        "mode": "System",
+                        "enableNodePublicIP": false,
+                        "enableEncryptionAtHost": false
+                    }
+                ],
+                "servicePrincipalProfile": {
+                    "clientId": "msi"
+                },
+                "addonProfiles": {
+                    "KubeDashboard": {
+                        "enabled": false
+                    },
+                    "azurepolicy": {
+                        "enabled": true,
+                        "config": {
+                            "version": "v2"
+                        }
+                    },
+                    "httpApplicationRouting": {
+                        "enabled": false
+                    },
+                    "omsAgent": {
+                        "enabled": true,
+                        "config": {
+                            "logAnalyticsWorkspaceResourceID": "[variables('logAnalyticsRef')]"
+                        }
+                    },
+                    "ingressApplicationGateway": {
+                        "enabled": true,
+                        "config": {
+                            "applicationGatewayId": "[variables('appGwRef')]"
+                        }
+                    },
+                    "aciConnectorLinux": {
+                        "enabled": true,
+                        "config": {
+                            "SubnetName": "[concat(parameters('subnetName'),'-aci')]"
+                        }
+                    }
+                },
+                "podIdentityProfile": {
+                    "enabled": true
+                },
+                "nodeResourceGroup": "[concat(parameters('clusterName'),'-nodes')]",
+                "enableRBAC": true,
+                "networkProfile": {
+                    "networkPlugin": "azure",
+                    "networkPolicy": "azure",
+                    "outboundType": "loadBalancer",
+                    "loadBalancerSku": "Standard",
+                    "loadBalancerProfile": {
+                        "managedOutboundIPs": {
+                            "count": 1
+                        },
+                        "allocatedOutboundPorts": 0,
+                        "idleTimeoutInMinutes": 30
+                    }
+                },
+                "aadProfile": {
+                    "managed": true,
+                    "adminGroupObjectIDs": [],
+                    "tenantID": "[subscription().tenantId]"
+                },
+                "apiServerAccessProfile": {
+                    "authorizedIPRanges": "[parameters('trustedAdminAddresses')]",
+                    "enablePrivateCluster": false
+                }
+            },
+            "resources": []
+        }
+    ],
+    "outputs": {
+        "subscriptionName": {
+            "type": "string",
+            "value": "[subscription().displayName]"
+        },
+        "aciSubnetRef": {
+            "type": "string",
+            "value": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), concat(parameters('subnetName'),'-aci'))]"
+        },
+        "aciconnectorPrincipalId": {
+            "type": "string",
+            "value": "[reference(resourceId(concat(parameters('clusterName'),'-nodes'),'Microsoft.ManagedIdentity/userAssignedIdentities', concat('aciconnectorlinux-', parameters('clusterName'))), '2018-11-30').principalId]"
+        },
+        "agicPrincipalId": {
+            "type": "string",
+            "value": "[reference(resourceId(concat(parameters('clusterName'),'-nodes'),'Microsoft.ManagedIdentity/userAssignedIdentities', concat('ingressapplicationgateway-', parameters('clusterName'))), '2018-11-30').principalId]"
+        },
+        "appgwRef": {
+            "type": "string",
+            "value": "[variables('appGwRef')]"
+        },
+        "appgwLinkedScopeRef": {
+            "type": "string",
+            "value": "[resourceId(concat(parameters('project'),'-common'), 'Microsoft.ManagedIdentity/userAssignedIdentities', concat(parameters('project'), '-vault-user'))]"
+        }
+    }
+}
