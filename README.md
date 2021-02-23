@@ -71,10 +71,12 @@ Creates the `hsl-jore4-common` and `hsl-jore4-dev` resource groups.
 Creates basic network setup:
 
 - `hsl-jore4-dev-vnet`
-  - `hsl-jore4-dev-subnet-private` (private subnet to deploy internal resources to (e.g. Kubernetes
-    cluster))
-  - `hsl-jore4-dev-subnet-public` (public subnet to allow access from outside (e.g. from bastion
-    host))
-  - `hsl-jore4-dev-subnet-gateway` (public subnet to allow access from Internet (e.g. from HTTPS))
+  - `hsl-jore4-dev-subnet-private` (private subnet to deploy internal resources to. E.g. Kubernetes
+    pods)
+  - `hsl-jore4-dev-subnet-private-aci` (private subnet to deploy ACI resources to. E.g. Kubernetes
+    ACI burst containers)
+  - `hsl-jore4-dev-subnet-public` (public subnet to allow access from outside. E.g. from bastion
+    host)
+  - `hsl-jore4-dev-subnet-gateway` (public subnet to allow access from Internet. E.g. HTTP requests)
 
 The subnets can freely access resources between each other.
