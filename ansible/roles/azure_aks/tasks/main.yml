@@ -60,14 +60,22 @@
 
 # Guess AKS admin group based on the subscription name
 - block:
-    - name: "Attempt to assign admin group jore4-platform-developers"
-      shell: "az aks update --name {{ az_resource_group_name }}-cluster --resource-group {{ az_resource_group_name }} --aad-admin-group-object-ids $(az ad group show --group jore4-platform-developers --output tsv --query objectId)"
+    - name: "Retrieve the jore4-platform-developers AD group id"
+      shell: "az ad group show --group jore4-platform-developers --output tsv --query objectId"
       delegate_to: localhost
       become: false
       run_once: true
-  rescue:
+      register: ad_group_id
+
     - debug:
-        msg: "Couldn't assign admin group jore4-platform-developers. Maybe the group isn't created yet?"
+        msg: "{{ad_group_id.stdout}}"
+
+    - name: "Attempt to assign admin group jore4-platform-developers"
+      shell: "az aks update --name {{ az_resource_group_name }}-cluster --resource-group {{ az_resource_group_name }} --aad-admin-group-object-ids {{ad_group_id.stdout}}"
+      delegate_to: localhost
+      become: false
+      run_once: true
+
   tags:
     - assign-admin-group
     - owner-tasks

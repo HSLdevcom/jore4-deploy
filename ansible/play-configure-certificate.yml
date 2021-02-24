@@ -1,0 +1,8 @@
+---
+- name: "Order App Service Certificate for the subscription"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - azure_certificate

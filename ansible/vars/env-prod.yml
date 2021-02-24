@@ -3,7 +3,7 @@
 az_environment: "prod"
 cidr_prefix: "10.223.32"
 ssh_vnet_cidr: "{{ cidr_prefix }}.*"
-dns_name: "jore.hsl.fi"
+subdomain: "@" # uses the jore.hsl.fi root domain
 
 az_usage_tag_default: "production"
 az_critical_tag_default: "no"

@@ -3,7 +3,7 @@
 az_environment: "dev"
 cidr_prefix: "10.223.29"
 ssh_vnet_cidr: "{{ cidr_prefix }}.*"
-dns_name: "dev.jore.hsl.fi"
+subdomain: "dev"
 
 az_usage_tag_default: "development"
 az_critical_tag_default: "no"
