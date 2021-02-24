@@ -25,6 +25,8 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Application Gateway Ingress Controller](#application-gateway-ingress-controller)
       - [Accessing the Cluster](#accessing-the-cluster)
       - [Troubleshooting](#troubleshooting)
+    - [6. Provisioning a Domain](#6-provisioning-a-domain)
+    - [7. Provisioning a Certificate](#7-provisioning-a-certificate)
   - [Configuration](#configuration-1)
     - [Adding services to Kubernetes cluster](#adding-services-to-kubernetes-cluster)
 
@@ -165,6 +167,9 @@ created. Those will be automatically created by Kubernetes's Application Gateway
 Kubernetes cluster. More info at:
 https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview
 
+Warning: if you rerun this playbook, it will also remove all the existing listeners that AGIC
+has created. If happens so, redo the Kubernetes deployment to recreate all the listeners.
+
 ### 5. Provisioning a Kubernetes cluster
 
 ```
@@ -248,6 +253,100 @@ If you see Authorization errors in the AGIC pod logs
 the fact that the controller was created before the permissions were assigned in the playbook. Try
 restarting the AGIC controller by setting the number of replicas first to 0 and then 1.
 `kubectl scale deployment ingress-appgw-deployment --replicas=0 --namespace kube-system`
+
+### 6. Provisioning a Domain
+
+```
+playdev play-provision-dns-zone.yml
+```
+
+The following resources and resource group are created:
+
+- `hsl-jore4-dns` resource group:
+  - `jore.hsl.fi` is the DNS zone for the application
+
+Will create a root dns record (`jore.hsl.fi`) and an A record ("subdomain") to point to the
+Application Gateway's IP address (`dev.jore.hsl.fi -> XX.XX.XX.XX`). Note that to point the root
+domain to an IP, the subdomain should be set to `"@"`
+
+Note that these subdomains are not published until they are declared by HSL Administrator at the
+domain root (hsl.fi and/or hsldev.com). Domain registrations time to get active, check with
+`dig jore.hsl.fi` if it has Azure's DNS servers bound.
+
+Note that this playbook does not delete other subdomains. If you e.g. change a subdomain name, you
+have to manually delete the obsolete A record (e.g. from Azure Portal)
+
+Note that you should to configure the Kubernetes ingress such that it only listens to requests from
+the given hostname (in the ingress rules spec should specify a hostname):
+
+```
+kind: Ingress
+[...]
+spec:
+  rules:
+    - host: dev.jore.hsl.fi
+      http:
+        paths:
+[...]
+```
+
+### 7. Provisioning a Certificate
+
+You should provision an App Service Certificate manually. There has been attempts to create it
+automatically with an ARM template, but it's quite buggy so don't do it! It's now created anyway, so
+don't touch it! :)
+
+The App Service Certificate should have the following parameters:
+
+- name: `star-jore-hsl-fi-certificate`
+- domain hostname: `*.jore.hsl.fi`
+- certificate SKU: `wildcard`
+- `hsl-jore4-common` resource group
+
+App Service Certificates renew automatically once a year. This is a wildcard (`*.jore.hsl.fi`)
+certificate that applies to all environments. After provisioning, you will need to manually visit
+Azure Portal to bind the certificate to the `hsl-jore4-vault` in the `hsl-jore4-common` resource
+group. (See
+https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate#import-an-app-service-certificate)
+You also need to wait for domain verification for the certificate by HSL admins (can check its
+progress on Azure Portal)
+
+After this is done, verify that the certificate was in fact created and placed to the
+`hsl-jore4-vault` as a secret.
+
+To import the certificate to the DEV environment's Application gateway, run the following script:
+
+```
+playdev play-configure-certificate.yml
+```
+
+This will search for the certificate in the `hsl-jore4-vault` and import it to the Application
+Gateway. Note that it is looking for the certificate by type and not by secret name (as the name is
+generated dynamically). The imported certificate in the Application Gateway will have the
+name: `hsl-jore4-dev-cert`. As it uses a reference to the key-vault, it will automatically renew as
+well when the App Service Certificate is updated.
+
+You have to instruct Kubernetes Ingress to use this appgw certificate:
+
+```
+[...]
+kind: Ingress
+metadata:
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: hsl-jore4-dev-cert
+[...]
+```
+
+For troubleshooting the App Service Certificate, it's a good idea to use the Azure REST API
+(https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/get). Note that
+when a certificate is broken (e.g. complains that keyVaultId is null or cannot load the certificate
+information on the Azure Portal), then it's best to use the PATCH endpoint
+(https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/updatecertificate)
+for fixing the key-vault binding as the PUT endpoint
+(https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/createorupdatecertificate)
+does not work in every case.
 
 ## Configuration
 
