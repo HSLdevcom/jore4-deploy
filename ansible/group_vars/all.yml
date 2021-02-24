@@ -1,7 +1,9 @@
 ---
 #Common project parameters
 az_project_name: "hsl-jore4"
-az_project_subdomain: "jore.hsl.fi"
+az_project_domain: "jore.hsl.fi"
+az_certificate_scope: "*.jore.hsl.fi"
+az_certificate_name: "star-jore-hsl-fi-certificate"
 az_region_name: "westeurope"
 az_resource_group_name: "{{ az_project_name }}-{{ az_environment }}"
 

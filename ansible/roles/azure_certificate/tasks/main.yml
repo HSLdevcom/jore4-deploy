@@ -1,0 +1,18 @@
+---
+- name: Get the App Service Certificate's secret ID from the key-vault
+  command: "az keyvault secret list \
+    --vault-name {{ az_project_name }}-vault \
+    --output tsv --query \"[?contentType=='application/x-pkcs12'].id\""
+  register: certSecretId
+- debug:
+    var: certSecretId.stdout
+
+- name: Upload SSL certificate from common key-vault to environment's Application Gateway
+  command: "az network application-gateway ssl-cert create \
+    --resource-group {{ az_resource_group_name }} \
+    --gateway-name {{ az_resource_group_name }}-appgw \
+    --name {{ az_resource_group_name }}-cert \
+    --key-vault-secret-id {{ certSecretId.stdout }}"
+  delegate_to: localhost
+  become: false
+  run_once: true
