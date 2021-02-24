@@ -3,7 +3,7 @@
 az_environment: "test"
 cidr_prefix: "10.223.31"
 ssh_vnet_cidr: "{{ cidr_prefix }}.*"
-dns_name: "test.jore.hsl.fi"
+subdomain: "test"
 
 az_usage_tag_default: "testing"
 az_critical_tag_default: "no"

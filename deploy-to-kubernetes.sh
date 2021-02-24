@@ -11,16 +11,16 @@ function do_deploy {
     echo "Deploying to the $1 environment"
 
     # create namespace for jore4 resources
-    kubectl apply -f kubernetes/jore4-namespace.yml --namespace hsl-jore4
+    envsubst < kubernetes/jore4-namespace.yml | kubectl apply --namespace hsl-jore4 -f -
 
     # change default namespace to hsl-jore4
     kubectl config set-context --current --namespace=hsl-jore4
 
     # create ingress
-    kubectl apply -f kubernetes/jore4-ingress.yml
+    envsubst < kubernetes/jore4-ingress.yml | kubectl apply --namespace hsl-jore4 -f -
 
     # create backend service
-    kubectl apply -f kubernetes/jore4-backend.yml
+    envsubst < kubernetes/jore4-backend.yml | kubectl apply --namespace hsl-jore4 -f -
 }
 
 function show_dialog {
@@ -29,20 +29,26 @@ function show_dialog {
     select env in "${envs[@]}"; do
         case $env in
             "dev")
-                echo "Start deployment to $env environment..."
+                echo "Start deployment to DEV environment..."
                 az_login $env
+                export APPGW_CERTIFICATE_NAME="hsl-jore4-dev-cert"
+                export APP_HOSTNAME="dev.jore.hsl.fi"
                 do_deploy $env
                 break
                 ;;
             "test")
-                echo "Start deployment to $env environment..."
+                echo "Start deployment to TEST environment..."
                 az_login $env
+                export APPGW_CERTIFICATE_NAME="hsl-jore4-test-cert"
+                export APP_HOSTNAME="test.jore.hsl.fi"
                 do_deploy $env
                 break
                 ;;
             "prod")
-                echo "Start deployment to $env environment..."
+                echo "Start deployment to PROD environment..."
                 az_login $env
+                export APPGW_CERTIFICATE_NAME="hsl-jore4-prod-cert"
+                export APP_HOSTNAME="jore.hsl.fi"
                 do_deploy $env
                 break
                 ;;

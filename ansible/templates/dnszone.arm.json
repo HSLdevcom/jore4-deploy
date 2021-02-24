@@ -1,0 +1,56 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "projectDomain": {
+           "type": "string",
+           "metadata": {
+                "description": "The root domain for public, customer-facing use."
+            }
+        },
+        "subDomain": {
+            "type": "string",
+            "metadata": {
+                "description": "The subdomain for the current environment (e.g. 'dev', 'test', '@')."
+            }
+         },
+         "appGwIPAddress": {
+            "type": "string",
+            "metadata": {
+                "description": "The public IP address of the Application Gateway to point the subdomain to."
+            }
+         }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Network/dnszones",
+            "apiVersion": "2018-05-01",
+            "name": "[parameters('projectDomain')]",
+            "location": "global",
+            "properties": {
+                "zoneType": "Public"
+            }
+        },
+        {
+            "type": "Microsoft.Network/dnszones/A",
+            "apiVersion": "2018-05-01",
+            "name": "[concat(parameters('projectDomain'), '/', parameters('subDomain'))]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/dnszones', parameters('projectDomain'))]"
+            ],
+            "properties": {
+                "TTL": 3600,
+                "ARecords": [
+                    {
+                        "ipv4Address": "[parameters('appGwIPAddress')]"
+                    }
+                ],
+                "targetResource": {}
+            }
+        }
+    ],
+    "outputs": {},
+    "functions": []
+}
+

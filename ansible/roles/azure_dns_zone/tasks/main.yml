@@ -1,0 +1,38 @@
+---
+- name: Create resource group for DNS zone
+  azure_rm_resourcegroup:
+    name: "{{ az_project_name }}-dns"
+    location: "{{ az_region_name }}"
+    tags:
+      usage: "production"
+      critical: "yes"
+  ignore_errors: "{{ ansible_check_mode }}"
+
+- name: Get Application Gateway public IP address
+  command: "az network public-ip show \
+    --resource-group {{ az_resource_group_name }} \
+    --name {{ az_resource_group_name }}-appgw-pip \
+    --output tsv --query ipAddress"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: public_ip
+
+- debug:
+    msg: "{{ public_ip.stdout }}"
+
+- name: Create Azure Deployment for the DNS zone and subdomain
+  azure_rm_deployment:
+    resource_group: "{{ az_project_name }}-dns"
+    location: "{{ az_region_name }}"
+    name: "azure_dns_zones"
+    parameters:
+      projectDomain:
+        value: "{{ az_project_domain }}"
+      subDomain:
+        value: "{{ subdomain }}"
+      appGwIPAddress:
+        value: "{{ public_ip.stdout }}"
+    tags:
+      ansible: workaround
+    template: "{{ lookup('file', 'templates/dnszone.arm.json') }}"

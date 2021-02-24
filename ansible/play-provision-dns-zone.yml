@@ -1,0 +1,8 @@
+---
+- name: "Create DNS subzone for the subscription"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - azure_dns_zone
