@@ -1,0 +1,34 @@
+---
+- name: "Create the bastion host for {{ az_environment }}"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - azure_bastion_host
+
+- name: "Fetch public CA SSH key {{ az_environment }}"
+  hosts: "localhost"
+  connection: local
+  gather_facts: false
+
+  roles:
+    - fetch_server_ssh_pubkey
+
+- name: "Wait for bastion host to come up"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - pause:
+        seconds: 30
+    - meta: refresh_inventory
+
+- name: "Configure bastion host to allow CA signed SSH keys for {{ az_environment }}"
+  hosts: "~.*-bastion.*"
+  user: "{{ init_user | default('hsladmin') }}"
+  gather_facts: false
+  become: true
+
+  roles:
+    - conf_server_ssh

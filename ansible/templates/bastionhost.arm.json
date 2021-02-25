@@ -1,0 +1,256 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "project": {
+           "type": "string",
+           "metadata": {
+                "description": "The short name of the project. Usually same as the name of the subscription in Azure."
+            }
+        },
+        "environment": {
+           "type": "string",
+           "metadata": {
+                "description": "The target environment. Typically dev, test or prod."
+            }
+        },
+        "initialSshKey": {
+           "type": "string",
+           "metadata": {
+                "description": "The initial public SSH key."
+            }
+        },
+        "location": {
+           "type": "string",
+           "metadata": {
+                "description": "The region used for the resources."
+            },
+            "defaultValue": "[resourceGroup().location]"
+        },
+        "vmName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the bastion host."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-bastion')]"
+        },
+        "vnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the target VNet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-vnet')]"
+        },
+        "privateSubnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the private subnet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-private')]"
+        },
+        "publicSubnetName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the public subnet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-public')]"
+        },
+        "publicIpName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the public IP resource."
+            },
+            "defaultValue": "[concat(parameters('vmName'), '-pip')]"
+        },
+        "privateNicName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the private network interface."
+            },
+            "defaultValue": "[concat(parameters('vmName'), '-private-nic')]"
+        },
+        "publicNicName": {
+           "type": "string",
+           "metadata": {
+                "description": "The name of the public network interface."
+            },
+            "defaultValue": "[concat(parameters('vmName'), '-management-nic')]"
+        },
+        "vmSize": {
+           "type": "string",
+           "metadata": {
+                "description": "The size of the virtual machine."
+            },
+            "defaultValue": "Standard_B1ms"
+        },
+        "vmImage": {
+           "type": "object",
+           "metadata": {
+                "description": "The image for the virtual machines."
+            },
+            "defaultValue": {
+                "publisher": "center-for-internet-security-inc",
+                "offer": "cis-ubuntu-linux-1804-l1",
+                "sku": "cis-ubuntu1804-l1",
+                "version": "latest"
+            }
+        },
+        "vmPlan": {
+           "type": "object",
+           "metadata": {
+                "description": "The plan information for the virtual machine image."
+            },
+            "defaultValue": {
+                "name": "cis-ubuntu1804-l1",
+                "product": "cis-ubuntu-linux-1804-l1",
+                "publisher": "center-for-internet-security-inc"
+            }
+        }
+    },
+    "variables": {
+        "privateSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('privateSubnetName'))]",
+        "publicSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('publicSubnetName'))]"
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2019-11-01",
+            "name": "[parameters('publicIpName')]",
+            "location": "[parameters('location')]",
+            "sku": {
+                "name": "Basic"
+            },
+            "properties": {
+                "publicIPAddressVersion": "IPv4",
+                "publicIPAllocationMethod": "Static",
+                "idleTimeoutInMinutes": 4,
+                "ipTags": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-11-01",
+            "name": "[parameters('privateNicName')]",
+            "location": "[parameters('location')]",
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "private-ip-config",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[variables('privateSubnetRef')]"
+                            },
+                            "primary": true
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false
+            }
+        },
+        {
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-11-01",
+            "name": "[parameters('publicNicName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpName'))]"
+            ],
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "public-ip-config",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpName'))]"
+                            },
+                            "subnet": {
+                                "id": "[variables('publicSubnetRef')]"
+                            },
+                            "primary": true
+                        }
+                    }
+                ],
+                "dnsSettings": {
+                    "dnsServers": []
+                },
+                "enableAcceleratedNetworking": false,
+                "enableIPForwarding": false
+            }
+        },
+        {
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2019-07-01",
+            "name": "[parameters('vmName')]",
+            "location": "[parameters('location')]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('publicNicName'))]",
+                "[resourceId('Microsoft.Network/networkInterfaces', parameters('privateNicName'))]"
+            ],
+            "tags": {
+                "requiredUptime": "office hours"
+            },
+            "plan": "[parameters('vmPlan')]",
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "storageProfile": {
+                    "imageReference": "[parameters('vmImage')]",
+                    "osDisk": {
+                        "osType": "Linux",
+                        "name": "[parameters('vmName')]",
+                        "createOption": "FromImage",
+                        "caching": "ReadOnly",
+                        "managedDisk": {
+                            "storageAccountType": "Standard_LRS"
+                        },
+                        "diskSizeGB": 30
+                    },
+                    "dataDisks": []
+                },
+                "osProfile": {
+                    "computerName": "[parameters('vmName')]",
+                    "adminUsername": "hsladmin",
+                    "linuxConfiguration": {
+                        "disablePasswordAuthentication": true,
+                        "ssh": {
+                            "publicKeys": [
+                                {
+                                    "path": "/home/hsladmin/.ssh/authorized_keys",
+                                    "keyData": "[parameters('initialSshKey')]"
+                                }
+                            ]
+                        },
+                        "provisionVMAgent": true
+                    },
+                    "secrets": [],
+                    "allowExtensionOperations": true
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('publicNicName'))]",
+                            "properties": {
+                                "primary": true
+                            }
+                        },
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', parameters('privateNicName'))]",
+                            "properties": {
+                                "primary": false
+                            }
+                        }
+                    ]
+                }
+            }
+        }
+    ],
+    "outputs": {},
+    "functions": []
+}

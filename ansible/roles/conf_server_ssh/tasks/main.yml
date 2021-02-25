@@ -1,0 +1,14 @@
+---
+- name: copy CA public key to server
+  copy:
+    content: "{{ hostvars['localhost']['developer_openssh_pub_key'] }}"
+    dest: /etc/ssh/ca.pub
+
+- name: set trusted ca key in sshd_config
+  lineinfile:
+    path: /etc/ssh/sshd_config
+    line: TrustedUserCAKeys /etc/ssh/ca.pub
+  become: yes
+
+- name: replace existing authorized key with ca authentication in authorized_keys
+  shell: echo "cert-authority {{ hostvars['localhost']['developer_openssh_pub_key'] }}" > /home/{{ az_initial_username }}/.ssh/authorized_keys
