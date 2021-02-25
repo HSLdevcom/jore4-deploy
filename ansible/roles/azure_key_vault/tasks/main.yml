@@ -1,4 +1,8 @@
 ---
+- name: Get object ID of developer AAD group
+  shell: az ad group show --group jore4-platform-developers --output tsv --query objectId
+  register: developer_group_object_id
+
 - name: Create Azure Deployment for the common key vault
   azure_rm_deployment:
     resource_group: "{{ az_project_name }}-common"
@@ -9,6 +13,8 @@
         value: "{{ az_project_name }}-vault"
       createMode:
         value: "{{ key_vault_create_mode | default('default') }}"
+      developerGroupObjectId:
+        value: "{{ developer_group_object_id.stdout }}"
     tags:
       ansible: "workaround"
     template: "{{ lookup('file', 'templates/keyvault.arm.json') }}"
@@ -23,6 +29,8 @@
         value: "{{ az_key_vault_name }}"
       createMode:
         value: "{{ key_vault_create_mode | default('default') }}"
+      developerGroupObjectId:
+        value: "{{ developer_group_object_id.stdout }}"
     tags:
       ansible: "workaround"
     template: "{{ lookup('file', 'templates/keyvault.arm.json') }}"

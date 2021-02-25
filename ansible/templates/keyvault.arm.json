@@ -29,6 +29,12 @@
             },
             "defaultValue": "572a41dd-c389-4f0a-b256-aefd1bf149d7"
         },
+        "developerGroupObjectId": {
+            "type": "string",
+            "metadata": {
+                "description": "The object ID of the developer AAD group"
+            }
+        },
         "createMode": {
            "type": "string",
            "metadata": {
@@ -62,6 +68,21 @@
                             "secrets": [
                                 "get",
                                 "list"
+                            ]
+                        }
+                    },
+                    {
+                        "tenantId": "[parameters('azureAdTenantId')]",
+                        "objectId": "[parameters('developerGroupObjectId')]",
+                        "permissions": {
+                            "keys": [
+                                "all"
+                            ],
+                            "secrets": [
+                                "all"
+                            ],
+                            "certificates": [
+                                "all"
                             ]
                         }
                     }
