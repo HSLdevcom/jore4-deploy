@@ -1,0 +1,24 @@
+---
+- name: Create Azure Deployment for the bastion host
+  azure_rm_deployment:
+    resource_group: "{{ az_resource_group_name }}"
+    location: "{{ az_region_name }}"
+    name: "azure_bastion"
+    parameters:
+      project:
+        value: "{{ az_project_name }}"
+      environment:
+        value: "{{ az_environment }}"
+      vmName:
+        value: "{{ az_project_name }}-{{ az_environment }}-bastion"
+      initialSshKey:
+        value: "{{ az_initial_ssh_public_key }}"
+      vmImage:
+        value: "{{ az_hardened_vm_image }}"
+      vmPlan:
+        value: "{{ az_hardened_vm_plan }}"
+      requiredUpTime:
+        value: "{{ az_requireduptime_tag_default }}"
+    tags:
+      ansible: 'workaround'
+    template: "{{ lookup('file', 'templates/bastionhost.arm.json') }}"
