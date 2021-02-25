@@ -1,0 +1,8 @@
+---
+- name: get developer OpenSSH public key
+  shell: az keyvault secret show --vault-name hsl-jore4-vault --name jore4-developer-ca-key-public --output tsv --query value
+  register: developer_openssh_pub_key_output
+
+- name: save the developer OpenSSH public key
+  set_fact:
+    developer_openssh_pub_key: "{{ developer_openssh_pub_key_output.stdout }}"
