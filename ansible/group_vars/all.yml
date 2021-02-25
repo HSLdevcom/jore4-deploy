@@ -8,3 +8,16 @@ az_resource_group_name: "{{ az_project_name }}-{{ az_environment }}"
 #Common packages
 default_packages:
   - anacron
+
+# Bastion host
+az_initial_ssh_public_key: "{{ lookup('file', '~/.ssh/ansible_initial_key_rsa.pub') }}"
+az_hardened_vm_image: # Note that this image has tight iptables firewall rules which are ok for a bastion, but will need to be customized for you service if used on other hosts
+  publisher: "center-for-internet-security-inc"
+  offer: "cis-ubuntu-linux-1804-l1"
+  sku: "cis-ubuntu1804-l1"
+  version: "latest"
+az_hardened_vm_plan:
+  name: "cis-ubuntu1804-l1"
+  product: "cis-ubuntu-linux-1804-l1"
+  publisher: "center-for-internet-security-inc"
+az_initial_username: "hsladmin"

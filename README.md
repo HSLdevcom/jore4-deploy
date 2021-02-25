@@ -146,7 +146,17 @@ collected (including the Kubernetes pods logs).
 You should also manually set up Security Center auto-provisioning for the subscription ("jore4").
 See https://docs.microsoft.com/en-us/azure/security-center/security-center-enable-data-collection
 
-### 4. Provisioning an application gateway
+### 4. Provisioning a bastion host and configuring it
+
+To provision the bastion host, run
+```
+playdev play-provision-bastion-host.yml
+```
+
+This will automatically download the developer team CA public key and will install it on the
+bastion host.
+
+### 5. Provisioning an application gateway
 
 ```
 playdev play-provision-appgateway.yml
@@ -165,7 +175,7 @@ created. Those will be automatically created by Kubernetes's Application Gateway
 Kubernetes cluster. More info at:
 https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview
 
-### 5. Provisioning a Kubernetes cluster
+### 6. Provisioning a Kubernetes cluster
 
 ```
 playdev play-provision-aks.yml
