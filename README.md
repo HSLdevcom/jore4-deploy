@@ -16,8 +16,9 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
     - [1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network)
     - [2. Provisioning key vaults](#2-provisioning-key-vaults)
     - [3. Provisioning a log workspace](#3-provisioning-a-log-workspace)
-    - [4. Provisioning an application gateway](#4-provisioning-an-application-gateway)
-    - [5. Provisioning a Kubernetes cluster](#5-provisioning-a-kubernetes-cluster)
+    - [4. Provisioning a bastion host and configuring it](#4-provisioning-a-bastion-host-and-configuring-it)
+    - [5. Provisioning an application gateway](#5-provisioning-an-application-gateway)
+    - [6. Provisioning a Kubernetes cluster](#6-provisioning-a-kubernetes-cluster)
       - [Configuration](#configuration)
       - [Docker images](#docker-images)
       - [Networking](#networking)
@@ -146,7 +147,34 @@ collected (including the Kubernetes pods logs).
 You should also manually set up Security Center auto-provisioning for the subscription ("jore4").
 See https://docs.microsoft.com/en-us/azure/security-center/security-center-enable-data-collection
 
-### 4. Provisioning an application gateway
+### 4. Provisioning a bastion host and configuring it
+
+To provision the bastion host, run
+```
+playdev play-provision-bastion-host.yml
+```
+
+This will
+- create a virtual machine that has network interfaces in both private and public subnets of the
+  vnet created by `play-provision-rg-and-nets.yml`,
+- assign a public IP to that VM's public subnet network interface,
+- download the developer team CA public key from the common key vault and
+- install the CA public key on the bastion host to enable project members to log in.
+
+For initial deployment of the CA public key, the ansible environment's public SSH key is used. If
+the project CA keypair is changed at a later stage, it has to be updated manually on the bastion
+host in the files
+- /etc/ssh/ca.pub and
+- /home/hsladmin/.ssh/authorized_keys
+
+For instructions on how to connect to the bastion host, see the
+[Wiki](https://github.com/HSLdevcom/jore4/blob/main/wiki/onboarding.md).
+
+The playbook `play-provision-bastion-host.yml` and its roles and templates have been adopted from
+the playbooks `play-provision-bastion-host.yml` and `play-configure-server-ssh.yml` found in the
+the repository https://gitlab.hsl.fi/platforms/server-based .
+
+### 5. Provisioning an application gateway
 
 ```
 playdev play-provision-appgateway.yml
@@ -165,7 +193,7 @@ created. Those will be automatically created by Kubernetes's Application Gateway
 Kubernetes cluster. More info at:
 https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview
 
-### 5. Provisioning a Kubernetes cluster
+### 6. Provisioning a Kubernetes cluster
 
 ```
 playdev play-provision-aks.yml
