@@ -270,3 +270,8 @@ Kubernetes cluster
 To see JORE4 pods, use `kubectl get pods --namespace hsl-jore4`, for system pods:
 `kubectl get pods --namespace kube-system`. To check logs, use:
 `kubectl logs [pod id] --namespace [hsl-jore | kube-system]`
+
+### Trigger deployment for Kubernetes cluster from CD
+
+https://blog.baeke.info/2021/01/06/a-look-at-github-actions-for-azure-and-aks-deployments/
+VSCode Github Actions extension

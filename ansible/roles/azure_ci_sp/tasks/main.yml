@@ -1,0 +1,31 @@
+---
+- name: Retrieve ID for AKS in {{ az_environment }}
+  command: "az aks show \
+    --resource-group {{az_resource_group_name}} \
+    --name {{az_resource_group_name}}-cluster \
+    --query id -o tsv"
+  register: aks_id
+
+# TODO do not recreate service principal if it already exists
+- name: Create service principal for {{ az_environment }}
+  command: "az ad sp create-for-rbac \
+    --name 'http://{{az_resource_group_name}}-ci-sp' \
+    --sdk-auth \
+    --skip-assignment"
+  register: sp_creds
+
+- name: Show service principal credentials (add this to github secrets)
+  debug:
+    var: sp_creds.stdout
+
+- name: Get service principal object id {{ az_environment }}
+  command: "az ad sp list \
+    --display-name {{az_resource_group_name}}-ci-sp
+    --query '[].objectId' --output tsv"
+  register: sp_object_id
+
+- name: Add permission to service principal to access {{ az_environment }} Kubernetes
+  command: "az role assignment create \
+    --role 'Azure Kubernetes Service Cluster Admin Role' \
+    --assignee-object-id {{ sp_object_id.stdout }} \
+    --scope {{ aks_id.stdout }}"

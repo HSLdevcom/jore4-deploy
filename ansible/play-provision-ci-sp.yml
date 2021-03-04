@@ -1,0 +1,8 @@
+---
+- name: "Create a service principal to be used by CI for {{ az_environment }}"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - azure_ci_sp

@@ -1,0 +1,55 @@
+name: deploy
+# https://blog.baeke.info/2021/01/06/a-look-at-github-actions-for-azure-and-aks-deployments/
+
+on:
+  # Triggers the workflow on push or pull request events
+  # push:
+  #   branches: [ main ]
+  pull_request:
+  #   branches: [ main ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+env:
+  RESOURCE_GROUP: hsl-jore4-test
+  CLUSTER_NAME: hsl-jore4-test-cluster
+
+jobs:
+  deploy-test:
+    environment: test
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v2
+
+      # Install kubectl
+      - uses: azure/setup-kubectl@v1
+        with:
+          version: "v1.18.8"
+
+      # Runs a single command using the runners shell
+      - name: Run a one-line script
+        run: echo Hello, world!
+
+      # # Log in to Azure context
+      # - uses: azure/login@v1
+      #   with:
+      #     creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      # Log in to Kubernetes context
+      - uses: azure/aks-set-context@v1
+        with:
+          creds: "${{ secrets.AZURE_CREDENTIALS }}"
+          resource-group: ${{ env.RESOURCE_GROUP }}
+          cluster-name: ${{ env.CLUSTER_NAME }}
+
+      # Run deployment
+      - uses: Azure/k8s-deploy@v1.3
+        with:
+          namespace: "hsl-jore4"
+          manifests: |
+            kubernetes/jore4-namespace.yml
+            kubernetes/jore4-ingress.yml
+            kubernetes/jore4-backend.yml
