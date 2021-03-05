@@ -310,6 +310,8 @@ Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
 8. Flux is now set up and will monitor the git repository for changes
 9. To fix the flux sync manually, change settings in the yaml files and use kubectl apply -f ...
 
+10. Just set it up in a new kube system with kubectl apply -k kubernetes/flux-system
+
 #### Troubleshooting
 
 If the flux controllers don't start...

@@ -5,7 +5,7 @@ metadata:
   name: flux-repo
   namespace: flux-system
 spec:
-  interval: 41s
+  interval: 31s
   ref:
     branch: fluxcd
   url: https://github.com/HSLdevcom/jore4-deploy
@@ -16,7 +16,7 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 42s
+  interval: 32s
   path: ./kubernetes/flux-system
   prune: true
   sourceRef:
@@ -29,7 +29,7 @@ metadata:
   name: hsl-jore4
   namespace: hsl-jore4
 spec:
-  interval: 43s
+  interval: 33s
   path: ./kubernetes/hsl-jore4
   prune: true
   sourceRef:
