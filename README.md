@@ -36,6 +36,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 - Azure CLI (at least version 2.19.1)
 - Docker (with docker-compose)
 - Kubectl and Helm (for deployments to Kubernetes)
+- Fluxcd, Kustomize (for setting up automatic deployments to Kubernetes)
 
 # How to Run
 
@@ -270,3 +271,45 @@ Kubernetes cluster
 To see JORE4 pods, use `kubectl get pods --namespace hsl-jore4`, for system pods:
 `kubectl get pods --namespace kube-system`. To check logs, use:
 `kubectl logs [pod id] --namespace [hsl-jore | kube-system]`
+
+### Setting up Flux
+
+#### Installing Flux to the cluster
+
+Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
+
+1. install cli
+   https://toolkit.fluxcd.io/guides/flux-v1-migration/#install-flux-v2-cli
+
+2. generate manifests for setting up fluxcd system in kubernetes
+   flux install --export > kubernetes/flux-system/flux-setup.yaml
+
+3. log in to kubernetes (az login, az aks get-credentials)
+
+4. apply manifests to set up fluxcd in kubernetes cluster
+   kubectl apply -f kubernetes/flux-system/flux-setup.yaml
+
+5. check that flux is up and running in the cluster
+   flux check
+
+6. set up flux monitoring to repository
+   flux create source git flux-system \
+    --url=https://github.com/HSLdevcom/jore4-deploy \
+    --branch=fluxcd \
+    --interval=30s \
+    --export > kubernetes/flux-system/flux-git.yaml
+
+7. set up flux kustomization
+   flux create kustomization flux-system \
+   --source=flux-system \
+   --path="./kubernetes/hsl-jore4" \
+   --prune=true \
+   --interval=30s \
+   --export > kubernetes/flux-system/flux-kustomize.yaml
+
+8. Flux is now set up and will monitor the git repository for changes
+9. To fix the flux sync manually, change settings in the yaml files and use kubectl apply -f ...
+
+#### Troubleshooting
+
+If the flux controllers don't start...
