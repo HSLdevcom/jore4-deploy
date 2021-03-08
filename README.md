@@ -282,7 +282,7 @@ Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
    `https://toolkit.fluxcd.io/guides/flux-v1-migration/#install-flux-v2-cli`
 
 2. generate manifests for setting up fluxcd system in kubernetes
-   `flux install --export > clusters/test/flux-system/gotk-components.yaml`
+   `flux install --network-policy=false --export > clusters/test/flux-system/gotk-components.yaml`
 
 3. log in to kubernetes (az login, az aks get-credentials)
 

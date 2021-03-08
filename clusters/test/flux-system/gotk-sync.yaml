@@ -5,7 +5,7 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 25s
+  interval: 20s
   ref:
     branch: fluxcd
   url: https://github.com/HSLdevcom/jore4-deploy
@@ -16,7 +16,7 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 25s
+  interval: 20s
   path: ./clusters/test
   prune: true
   sourceRef:
