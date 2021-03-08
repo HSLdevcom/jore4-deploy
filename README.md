@@ -276,45 +276,69 @@ To see JORE4 pods, use `kubectl get pods --namespace hsl-jore4`, for system pods
 
 #### Installing Flux to the cluster
 
-Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
+The following assumes you are setting up flux to the test cluster
 
 1. install cli
    `https://toolkit.fluxcd.io/guides/flux-v1-migration/#install-flux-v2-cli`
 
-2. generate manifests for setting up fluxcd system in kubernetes
-   `flux install --network-policy=false --export > clusters/test/flux-system/gotk-components.yaml`
+2. log in to kubernetes (az login, az aks get-credentials)
+3. Apply gotk-components
+4. flux check
+5. apply gotk-sync
 
-3. log in to kubernetes (az login, az aks get-credentials)
+to regenerate:
 
-4. apply manifests to set up fluxcd in kubernetes cluster
-   `kubectl apply -f clusters/test/flux-system/gotk-components.yaml`
+Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
 
-5. check that flux is up and running in the cluster
-   `flux check`
+1. log in to kubernetes (az login, az aks get-credentials)
 
-6. set up flux monitoring to repository
-   flux create source git flux-system \
+2. check that flux prerequisites are ok
+   `flux check --pre`
+
+3. generate manifests for setting up fluxcd system in kubernetes (monitoring controllers)
+   `flux install --network-policy=false --export` (default location: `> clusters/test/flux-system/gotk-components.yaml`)
+
+4. generate a manifest for source repository to be monitored:
+
+   ```
+   flux create source git flux-repo \
     --url=https://github.com/HSLdevcom/jore4-deploy \
-    --branch=fluxcd \
-    --interval=30s \
-    --export > kubernetes/flux-system/flux-git.yaml
+    --branch=main \
+    --interval=1m \
+    --export
+   ```
 
-7. set up flux kustomization
+   (default location, create: `> clusters/test/flux-system/gotk-sync.yaml`)
+
+5. generate a manifest for flux-system decription itself to be monitored. The monitored directory should have a `kustomization.yaml` file in it
+
+   ```
    flux create kustomization flux-system \
-   --source=flux-system \
-   --path="./clusters/test" \
+   --source=flux-repo \
+   --path="./clusters/test/flux-system" \
    --prune=true \
-   --interval=30s \
-   --export > kubernetes/flux-system/flux-kustomize.yaml
+   --interval=1m \
+   --export
+   ```
 
-8. Flux is now set up and will monitor the git repository for changes
-9. To fix the flux sync manually, change settings in the yaml files and use kubectl apply -f ...
+   (default location, append: `>> clusters/test/flux-system/gotk-sync.yaml`)
 
-10. Just set it up in a new kube system with kubectl apply -k kubernetes/flux-system
+6. generate a manifest for kubernetes app resources to be monitored. The monitored directory should have a `kustomization.yaml` file in it
 
-Helm chart as github pages
+   ```
+   flux create kustomization hsl-jore4 \
+   --source=flux-repo \
+   --path="./clusters/test/hsl-jore4" \
+   --prune=true \
+   --interval=1m \
+   --export
+   ```
+
+   (default location, append: `>> clusters/test/flux-system/gotk-sync.yaml`)
 
 #### Troubleshooting
+
+check pods with `kubectl get pods --namespace kube-system`
 
 If the flux controllers don't start... if pods are stuck in pending, you may need to increare the number of nodes that are assigned for Kubernetes
 
