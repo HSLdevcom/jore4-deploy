@@ -1,24 +1,40 @@
 ---
+# set up jore4-deploy repository as source
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: GitRepository
 metadata:
-  name: flux-system
+  name: flux-repo
   namespace: flux-system
 spec:
-  interval: 20s
+  interval: 30s
   ref:
     branch: fluxcd
   url: https://github.com/HSLdevcom/jore4-deploy
 ---
+# monitor changes in clusters/test/flux-system directory
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
 kind: Kustomization
 metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 20s
-  path: ./clusters/test
+  interval: 31s
+  path: ./clusters/test/flux-system
   prune: true
   sourceRef:
     kind: GitRepository
-    name: flux-system
+    name: flux-repo
+---
+# monitor changes in clusters/test/hsl-jore4 directory
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+kind: Kustomization
+metadata:
+  name: flux-system
+  namespace: flux-system
+spec:
+  interval: 32s
+  path: ./clusters/test/hsl-jore4
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-repo
