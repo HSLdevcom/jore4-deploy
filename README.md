@@ -279,18 +279,18 @@ To see JORE4 pods, use `kubectl get pods --namespace hsl-jore4`, for system pods
 Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
 
 1. install cli
-   https://toolkit.fluxcd.io/guides/flux-v1-migration/#install-flux-v2-cli
+   `https://toolkit.fluxcd.io/guides/flux-v1-migration/#install-flux-v2-cli`
 
 2. generate manifests for setting up fluxcd system in kubernetes
-   flux install --export > kubernetes/flux-system/flux-setup.yaml
+   `flux install --components="source-controller,kustomize-controller" --export > clusters/test/flux-system/gotk-components.yaml`
 
 3. log in to kubernetes (az login, az aks get-credentials)
 
 4. apply manifests to set up fluxcd in kubernetes cluster
-   kubectl apply -f kubernetes/flux-system/flux-setup.yaml
+   `kubectl apply -f clusters/test/flux-system/gotk-components.yaml`
 
 5. check that flux is up and running in the cluster
-   flux check
+   `flux check`
 
 6. set up flux monitoring to repository
    flux create source git flux-system \
@@ -312,6 +312,10 @@ Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
 
 10. Just set it up in a new kube system with kubectl apply -k kubernetes/flux-system
 
+Helm chart as github pages
+
 #### Troubleshooting
 
 If the flux controllers don't start...
+
+uninstall flux with `flux uninstall --namespace=flux-system`

@@ -2,10 +2,10 @@
 apiVersion: source.toolkit.fluxcd.io/v1beta1
 kind: GitRepository
 metadata:
-  name: flux-repo
+  name: flux-system
   namespace: flux-system
 spec:
-  interval: 31s
+  interval: 30s
   ref:
     branch: fluxcd
   url: https://github.com/HSLdevcom/jore4-deploy
@@ -16,22 +16,10 @@ metadata:
   name: flux-system
   namespace: flux-system
 spec:
-  interval: 32s
-  path: ./kubernetes/flux-system
+  interval: 30s
+  path: ./kubernetes/hsl-jore4/flux-system
   prune: true
   sourceRef:
     kind: GitRepository
-    name: flux-repo
----
-apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
-kind: Kustomization
-metadata:
-  name: hsl-jore4
-  namespace: hsl-jore4
-spec:
-  interval: 33s
-  path: ./kubernetes/hsl-jore4
-  prune: true
-  sourceRef:
-    kind: GitRepository
-    name: flux-repo
+    name: flux-system
+  validation: client
