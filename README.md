@@ -316,6 +316,17 @@ Helm chart as github pages
 
 #### Troubleshooting
 
-If the flux controllers don't start...
+If the flux controllers don't start... if pods are stuck in pending, you may need to increare the number of nodes that are assigned for Kubernetes
 
 uninstall flux with `flux uninstall --namespace=flux-system`
+
+Cannot delete flux-system namespace
+Trick : 1
+
+`kubectl get namespace flux-system -o json > tmp.json`
+
+then edit tmp.json and remove "kubernetes"
+
+Open another terminal and Run `kubectl proxy`
+
+`curl -k -H "Content-Type: application/json" -X PUT --data-binary @tmp.json https://localhost:8001/api/v1/namespaces/flux-system/finalize`
