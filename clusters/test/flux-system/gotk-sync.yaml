@@ -17,9 +17,8 @@ metadata:
   namespace: flux-system
 spec:
   interval: 30s
-  path: ./kubernetes/hsl-jore4/flux-system
+  path: ./clusters/test
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-system
-  validation: client

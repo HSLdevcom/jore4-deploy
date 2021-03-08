@@ -282,7 +282,7 @@ Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
    `https://toolkit.fluxcd.io/guides/flux-v1-migration/#install-flux-v2-cli`
 
 2. generate manifests for setting up fluxcd system in kubernetes
-   `flux install --components="source-controller,kustomize-controller" --export > clusters/test/flux-system/gotk-components.yaml`
+   `flux install --export > clusters/test/flux-system/gotk-components.yaml`
 
 3. log in to kubernetes (az login, az aks get-credentials)
 
@@ -302,7 +302,7 @@ Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
 7. set up flux kustomization
    flux create kustomization flux-system \
    --source=flux-system \
-   --path="./kubernetes/hsl-jore4" \
+   --path="./clusters/test" \
    --prune=true \
    --interval=30s \
    --export > kubernetes/flux-system/flux-kustomize.yaml
