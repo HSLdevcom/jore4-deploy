@@ -336,6 +336,11 @@ Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
 
    (default location, append: `>> clusters/test/flux-system/gotk-sync.yaml`)
 
+#### Explanations
+
+Flux behaviour
+current folder structure
+
 #### Troubleshooting
 
 For connecting to kubernetes cluster, see #(...)

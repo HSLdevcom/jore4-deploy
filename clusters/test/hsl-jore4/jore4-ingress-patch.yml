@@ -3,6 +3,9 @@ kind: Ingress
 metadata:
   name: jore4-ingress
   namespace: hsl-jore4
+  annotations:
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: hsl-jore4-test-cert
+
 spec:
   rules:
     # only listen to requests from this host
