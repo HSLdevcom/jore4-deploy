@@ -11,7 +11,7 @@ spec:
     branch: fluxcd
   url: https://github.com/HSLdevcom/jore4-deploy
 ---
-# monitor changes in clusters/test/flux-system directory
+# monitor changes in clusters/XXX/flux-system directory
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
 kind: Kustomization
 metadata:
@@ -19,13 +19,13 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  path: ./clusters/test/flux-system
+  path: <replace>
   prune: true
   sourceRef:
     kind: GitRepository
     name: flux-repo
 ---
-# monitor changes in clusters/test/hsl-jore4 directory
+# monitor changes in clusters/XXX/hsl-jore4 directory
 apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
 kind: Kustomization
 metadata:
@@ -33,7 +33,7 @@ metadata:
   namespace: flux-system
 spec:
   interval: 1m
-  path: ./clusters/test/hsl-jore4
+  path: <replace>
   prune: true
   sourceRef:
     kind: GitRepository

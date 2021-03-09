@@ -4,7 +4,7 @@ metadata:
   name: jore4-backend
   namespace: hsl-jore4
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: jore4-backend
@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: jore4-backend-image
-          image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
+          image: <replace>
           imagePullPolicy: Always
           ports:
             - containerPort: 80

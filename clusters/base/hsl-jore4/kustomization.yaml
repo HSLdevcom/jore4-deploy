@@ -1,0 +1,6 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - jore4-namespace.yml
+  - jore4-ingress.yml
+  - jore4-backend.yml

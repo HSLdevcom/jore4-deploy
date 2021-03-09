@@ -256,7 +256,7 @@ restarting the AGIC controller by setting the number of replicas first to 0 and 
 
 Adding/updating Kubernetes services does not need Ansible. To deploy JORE4 to Kubernetes from your
 local machine, run `./deploy-to-kubernetes.sh` and choose the environment to log in to. Follow the
-instructions in the command line.
+instructions in the command line. Remember to be connected to VPN.
 
 The JORE4 Kubernetes services are deployed to the `hsl-jore4` namespace. All other controllers (AGIC,
 ACI pods) can be found from the `kube-system` namespace.
@@ -337,6 +337,10 @@ Based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
    (default location, append: `>> clusters/test/flux-system/gotk-sync.yaml`)
 
 #### Troubleshooting
+
+For connecting to kubernetes cluster, see #(...)
+
+to test kustomizations, use `kustomize build clusters/test/hsl-jore4` (or any other directory with a kustomization.yaml in it)
 
 check pods with `kubectl get pods --namespace kube-system`
 
