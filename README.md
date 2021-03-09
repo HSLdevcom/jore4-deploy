@@ -365,3 +365,5 @@ Open another terminal and Run `kubectl proxy`
 `curl -k -H "Content-Type: application/json" -X PUT --data-binary @tmp.json https://localhost:8001/api/v1/namespaces/flux-system/finalize`
 
 `watch flux get kustomizations`
+
+gerrit test
