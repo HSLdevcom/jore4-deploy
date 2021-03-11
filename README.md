@@ -31,6 +31,10 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Troubleshooting AKS](#troubleshooting-aks)
     - [7. Provisioning a Domain](#7-provisioning-a-domain)
     - [8. Provisioning a Certificate](#8-provisioning-a-certificate)
+    - [9. Provisioning a Database](#9-provisioning-a-database)
+      - [Database scaling](#database-scaling)
+      - [DB users](#db-users)
+      - [Connecting to the database](#connecting-to-the-database)
   - [Configurations](#configurations)
     - [Adding services to Kubernetes cluster](#adding-services-to-kubernetes-cluster)
     - [Setting up Flux](#setting-up-flux)
@@ -117,8 +121,10 @@ Creates basic network setup:
 - `hsl-jore4-dev-vnet`
   - `hsl-jore4-dev-subnet-private` (private subnet to deploy internal resources to. E.g. Kubernetes
     pods)
-  - `hsl-jore4-dev-subnet-private-aci` (private subnet to deploy ACI resources to. E.g. Kubernetes
-    ACI burst containers)
+  - `hsl-jore4-dev-subnet-private-aci` (private subnet to deploy Kubernetes ACI burst containers to.
+    Delegated to Microsoft.ContainerInstance/containerGroups)
+  - `hsl-jore4-dev-subnet-private-db` (private subnet to deploy database and its failovers to.
+    Delegated to Microsoft.DBforPostgreSQL/flexibleServers)
   - `hsl-jore4-dev-subnet-public` (public subnet to allow access from outside. E.g. from bastion
     host)
   - `hsl-jore4-dev-subnet-gateway` (public subnet to allow access from Internet. E.g. HTTP requests)
@@ -392,6 +398,58 @@ when a certificate is broken (e.g. complains that keyVaultId is null or cannot l
 information on the Azure Portal), then it's best to use the [PATCH endpoint](https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/updatecertificate)
 for fixing the key-vault binding as the [PUT endpoint](https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/createorupdatecertificate)
 does not work in every case.
+
+### 9. Provisioning a Database
+
+```
+playdev play-provision-database.yml
+```
+
+- In `hsl-jore4-dev` resource group:
+
+Provisions a managed PostgreSQL Flexible-server instance for the DEV environment. This offers a
+primary database instance in one of the availability zones (AZ) and when the high availability (HA)
+parameter is set to Enabled, other secondary hotswap instances are created in the other AZs.
+
+Note that this setup is still in _preview_ in Azure. More information on the service here:
+https://docs.microsoft.com/en-us/azure/postgresql/flexible-server/overview
+
+#### Database scaling
+
+Currently, Flexible-server PostgreSQL services can only use fixed-size storage without the option
+for auto-grow. As storage is cheap, so it's worth setting a high-enough storage for the database.
+
+When basic parameters (e.g. storage, number of vCores, postgresql version) of the database are
+changed, the playbook can be rerun to change these parameters in the running instance. Note that
+this might result in a minute-long downtime while the db server is restarted.
+
+More information on scaling here:
+https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/postgresql/flexible-server/concepts-compute-storage.md#scale-resources
+
+#### DB users
+
+The playbook checks whether there are existing credentials found for the DB admin user from the
+`hsl-jore4-dev-vault`. If not, they get generated and placed to the key-vault automatically.
+
+TODO: currently we only have an admin user for the database, it's a follow-up task to create
+application-specific users that are meant to actually run the database queries.
+
+#### Connecting to the database
+
+The database is located in the private subnet, meaning you need to be on VPN and tunnel through the
+bastion host.
+
+```
+# create tunnel with:
+ssh -L 6432:hsl-jore4-dev-db.postgres.database.azure.com:5432 -i ~/.ssh/jore4_key_ed25519 hsladmin@[bastion-host-IP]
+# in another terminal, connect to database with (find sql username and password from hsl-jore4-dev-vault):
+psql -h localhost -p 6432 -U <admin username> -W postgres
+```
+
+Another solution mentioned in this Article
+(https://docs.microsoft.com/en-us/azure/postgresql/flexible-server/connect-azure-cli) says it's
+possible to connect to the database using `az postgresql flexible-server connect`, however it seems
+to be broken (as of 15.3.2021)
 
 ## Configurations
 
