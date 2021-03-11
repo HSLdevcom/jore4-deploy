@@ -1,0 +1,26 @@
+# general linter for many languages and tools
+# https://github.com/github/super-linter
+name: Super-Linter
+
+on:
+  push:
+  pull_request:
+    branches: [master]
+
+jobs:
+  super-lint:
+    name: Lint code base
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checks out a copy of your repository on the ubuntu-latest machine
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Runs the Super-Linter action
+      - name: Run Super-Linter
+        uses: github/super-linter@v3
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VALIDATE_ANSIBLE: false # ansible-lint seems to be broken, throws internal-error, couldn't find a reason why

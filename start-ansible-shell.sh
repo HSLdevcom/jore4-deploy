@@ -6,7 +6,7 @@ export COMPOSE_PROJECT_NAME=jore4_infra
 
 # allow running from any working directory
 WD=$(dirname "$0")
-cd "${WD}"
+cd "${WD}" || exit
 
 echo "Log in to azure with own user..."
 az login
