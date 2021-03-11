@@ -28,11 +28,19 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Nodes, ACI burst](#nodes-aci-burst)
       - [Application Gateway Ingress Controller](#application-gateway-ingress-controller)
       - [Accessing the Cluster](#accessing-the-cluster)
-      - [Troubleshooting](#troubleshooting)
+      - [Troubleshooting AKS](#troubleshooting-aks)
     - [7. Provisioning a Domain](#7-provisioning-a-domain)
     - [8. Provisioning a Certificate](#8-provisioning-a-certificate)
   - [Configurations](#configurations)
     - [Adding services to Kubernetes cluster](#adding-services-to-kubernetes-cluster)
+    - [Setting up Flux](#setting-up-flux)
+      - [Concept](#concept)
+      - [Kustomize](#kustomize)
+      - [Flux cluster directory structure](#flux-cluster-directory-structure)
+      - [Installing Flux to the cluster](#installing-flux-to-the-cluster)
+      - [Generate Flux configurations](#generate-flux-configurations)
+      - [Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
+      - [Troubleshooting Flux](#troubleshooting-flux)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -42,6 +50,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 - Azure CLI (at least version 2.19.1)
 - Docker (with docker-compose)
 - Kubectl and Helm (for deployments to Kubernetes)
+- Fluxcd, Kustomize (for setting up automatic deployments to Kubernetes)
 
 # Development
 
@@ -282,7 +291,7 @@ was actually added as an AAD admin group to the cluster:
 `az aks show --name hsl-jore4-dev-cluster --resource-group hsl-jore4-dev --query "aadProfile"`
 If not, fix it by rerunning the Kubernetes playbook
 
-#### Troubleshooting
+#### Troubleshooting AKS
 
 For troubleshooting, see article:
 https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-troubleshoot
@@ -392,19 +401,229 @@ does not work in every case.
 ### Adding services to Kubernetes cluster
 
 Adding/updating Kubernetes services does not need Ansible. To deploy JORE4 to Kubernetes from your
-local machine, run `./deploy-to-kubernetes.sh` and choose the environment to log in to. Follow the
-instructions in the command line.
+local machine, run `./kubernetes.sh help`. Follow the instructions in the help. When running
+deployments, remember to stay connected to VPN. It's recommended to use Flux (see below) instead of
+manual deployments to enable automatic deployments to Kubernetes.
 
 The JORE4 Kubernetes services are deployed to the `hsl-jore4` namespace. All other controllers (AGIC,
-ACI pods) can be found from the `kube-system` namespace.
+ACI, Flux pods) can be found from the `kube-system` namespace and `flux-system` namespace.
 
 For troubleshooting, visit `hsl-jore4-dev-cluster` in Azure Portal and see if all Services and
 Ingresses are up. Could also check the pods under Workloads menu.
 
 For debugging with command line, first need to log in to Azure `az login` and then to the proper
 Kubernetes cluster
-`az aks get-credentials --resource-group hsl-jore4-dev --name hsl-jore4-dev-cluster --overwrite-existing`
+`az aks get-credentials --resource-group hsl-jore4-dev --name hsl-jore4-dev-cluster --overwrite-existing`.
+Or just use `./kubernetes.sh login dev`
 
 To see JORE4 pods, use `kubectl get pods --namespace hsl-jore4`, for system pods:
 `kubectl get pods --namespace kube-system`. To check logs, use:
 `kubectl logs [pod id] --namespace [hsl-jore | kube-system]`
+
+### Setting up Flux
+
+#### Concept
+
+Flux (https://fluxcd.io/) is a Kubernetes extension which keeps on polling sources (git/helm/docker
+repositories) for changes. It has to be deployed to a cluster once (see instructions below), then
+it will keep on working and updating itself.
+
+Whenever there's a change in the git/helm/docker repositories, it automatically (re)deploys the
+desired resources to the cluster. Note that Flux also stores its own components and configurations
+as Kubernetes resources, so it also automatically updates its own configuration (sync settings) the
+same way as it can redeploy applications.
+
+Flux automatically accesses the cluster from inside, without having to allow an IP address
+through the Network Security Group or creating a machine user (service principal) for CI.
+
+Flux periodically checks for differences in the Kubernetes cluster from the desired state. When
+there's a change, it automatically reconciles. As a drawback, this also means that we cannot
+(easily) manually deploy a specific random version to the cluster, as flux will return the cluster
+to the latest version that matches the version pattern. E.g. if flux is set to deploy `1.3.x`
+versions, you cannot manually deploy a 1.2.1 or 1.4.1 version as it will be reconciled back to
+1.3.1.
+
+#### Kustomize
+
+In our case, Kubernetes resources are bundled with Kustomize (https://kustomize.io/), meaning that
+we have some base templates (found from `clusters/base`) and then each stage defines their own
+patches that apply the necessary changes for the given environment (e.g. `clusters/dev`)
+
+Note the confusing terminology that Kubernetes's `kustomize.config.k8s.io/v1beta1` `Kustomize`
+resource is used to bundle resources while flux's `kustomize.toolkit.fluxcd.io/v1beta1` `Kustomize`
+resource is used to define source monitoring rules.
+
+#### Flux cluster directory structure
+
+Flux's base components, Kubernetes definitions can be found from
+`clusters/base/flux-system/gotk-components.yaml`. The configuration for the monitored repositories
+can be found from `clusters/base/flux-system/gotk-sync.yaml`. Naturally, every environment needs
+to slighty differ in sync configurations, these patches are found from
+`clusters/XXX/flux-system/gotk-sync-patch.yaml`
+
+The jore4 Kubernetes application base template is defined in the directory `clusters/base/hsl-jore4`.
+This only contains the base template, every stage has to define its own differences. For example
+what is the hostname or what docker image to use (e.g. hsldevcom/jore4-frontend :dev/:test/:prod).
+These differences are defined in the directory `clusters/XXX/hsl-jore4`.
+
+#### Installing Flux to the cluster
+
+Preliminaries
+
+- kubectl cli (https://kubernetes.io/docs/tasks/tools/)
+- kustomize cli (https://kustomize.io/)
+- flux cli (https://fluxcd.io/)
+
+This git repository already has all the Kubernetes resources bootstrapped to set up Flux to DEV,
+TEST and PROD environments, there's no need to generate anything.
+
+The `./kubernetes.sh` script contains all the necessary commands and help instructions for you to
+set up Flux. In a nutshell:
+
+`./kubernetes.sh login dev`
+`./kubernetes.sh deploy:flux dev`
+
+This will:
+
+1. log you in to the dev cluster
+1. deploy Flux's Kubernetes definitions (`gotk-components.yaml`)
+1. deploy Flux's sync configurations (`gotk-sync.yaml`)
+1. Flux will automatically monitor the `main` branch or this git repository and deploy the app(s)
+specific to the stage (only hsl-jore4 for now)
+
+#### Generate Flux configurations
+
+Sometimes you might want to generate Flux configurations with the CLI instead of manually editing
+the existing `gotk-*.yaml` files. Here are some instructions for the manual bootstrapping process,
+based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
+
+1. log in to kubernetes (az login, az aks get-credentials... or `./kubernetes.sh login dev`)
+
+2. check that Flux prerequisites are ok in the cluster
+`flux check --pre`
+
+3. generate manifests for setting up Flux system in kubernetes (monitoring controllers)
+`flux install --network-policy=false --export > clusters/base/flux-system/gotk-components.yaml`
+
+4. generate a manifest for this git repository to be monitored as a "source":
+
+```
+flux create source git flux-repo \
+--url=https://github.com/HSLdevcom/jore4-deploy \
+--branch=main \
+--interval=1m \
+--export > clusters/base/flux-system/gotk-sync.yaml`
+```
+
+(this will poll the `main` branch of the `jore4-deploy` repository every minute for changes)
+
+5. generate a manifest for Flux resources itself to be monitored. The monitored directory should
+have a `kustomization.yaml` file in it
+
+```
+flux create kustomization flux-system-sync \
+--source=flux-repo \
+--path="./clusters/dev/flux-system" \
+--prune=true \
+--interval=1m \
+--export >> clusters/base/flux-system/gotk-sync.yaml`
+```
+
+(this will examine if there are any changes in `clusters/dev/flux-system` from the `jore4-deploy`
+git repository every minute.)
+
+6. generate a manifest for kubernetes app resources to be monitored. The monitored directory should
+have a `kustomization.yaml` file in it
+
+```
+flux create kustomization hsl-jore4-sync \
+--source=flux-repo \
+--path="./clusters/dev/hsl-jore4" \
+--prune=true \
+--interval=1m \
+--export >> clusters/base/flux-system/gotk-sync.yaml
+```
+
+(similarly, this will monitor for changes in the `clusters/dev/hsl-jore4` directory from the
+`jore4-deploy` git repository)
+
+#### Deploying things manually to the Kubernetes cluster
+
+As mentioned before, Fluxcd will always revert back to the configuration defined in the repository,
+so if you manually deploy either `flux-system` or `hsl-jore4` resources that differ from this
+configuration, your changes will be reverted.
+
+_Option no 1_
+
+The laziest solution is just to delete Flux from the cluster with
+`flux uninstall --namespace=flux-system`. You can always just redeploy Flux with
+`./kubernetes.sh deploy:flux dev`.
+
+_Option no 2_
+
+The nicer solution is to instruct Flux to start monitoring a new branch where you are placing your
+currently tested Kubernetes resources. This will also make sure that your changes are constantly
+also tested whether they are still compatible with Flux (so you didn't break the sync).
+
+1. Create a new git branch, e.g. `feature-x`
+1. Modify the `cluster/dev/flux-system/gotk-sync.yaml` script to start monitoring this `feature-x`
+branch. Commit this change to the branch and push it to github.
+1. As the deployed Flux at the moment is still monitoring the `main` branch, you have to manually
+redeploy the new Flux configuration with `./kubernetes deploy:flux dev` to apply changes.
+1. Now you can test your new Kubernetes resources by editing, commiting and pushing your changes.
+These will automatically get applied to the DEV environment.
+1. Don't forget to do the same steps to set the syncing back to the `main` branch after you are
+done.
+
+_Option no 3_
+
+If you want to develop the Kubernetes scripts in a safe environment, you could also use Kind
+(Kubernetes in Docker). See instructions here:
+https://docs.fluxcd.io/projects/helm-operator/en/stable/contributing/get-started-developing/#prepare-your-environment
+
+#### Troubleshooting Flux
+
+_Kustomize_
+
+For bundling resources and templating, we use Kustomizations. Unfortunately `kubectl apply -k ...`
+uses an old version of Kustomize, so we rather have to build the Kustomizations ourselves and apply
+them as patches, like this: `kustomize build clusters/XXX/flux-system | kubectl apply -f -`
+
+To test whether Kustomize builds and patches the templates correctly, just call `kustomize build ...`
+pointing to a directory with a `kustomisation.yaml` in it.
+
+_Pods_
+
+Flux is deployed to Kubernetes, it's controllers are run in pods. For checking all pods' status, use
+`kubectl get pods -A`. For checking Flux's pods, use `kubectl get pods --namespace flux-system`.
+To viewing the logs of a single pod in the Flux namespace, use `kubectl logs XXX --namespace flux-system`.
+
+If the flux pods don't start, you may need to increase the number of nodes that are assigned for
+Kubernetes in `ansible/vars/env-dev.yaml` and rerun `play-provision-aks.yaml`. For other
+startup-related issues, see
+https://kubernetes.io/docs/tasks/debug-application-cluster/debug-application/
+
+_Uninstall_
+
+If you want to uninstall Flux from the cluster, simply call `flux uninstall --namespace=flux-system`.
+
+On some rare occasions however the Kubernetes destroy finalizer does not get called and the
+namespace does not get deleted. To clean up:
+
+1. retrieve the current namespace manifest with
+`kubectl get namespace flux-system -o json > tmp.json`
+1. edit `tmp.json` and remove "kubernetes" from finalizers
+1. open another terminal and run `kubectl proxy`
+1. patch the cluster namespace manifest with
+`curl -k -H "Content-Type: application/json" -X PUT --data-binary @tmp.json https://localhost:8001/api/v1/namespaces/flux-system/finalize`
+
+_Flux monitoring_
+
+To see what Kustomizations currently are deployed by Flux, use `watch flux get kustomizations`. If
+there's a wrong version deployed:
+
+1. wait for the reconciliation timeout (1 minutes) to pass
+1. if still a wrong version, see the Flux controller pods' logs
+`kubectl logs XXX-controller-YYY --namespace flux-system`
+1. see instructions and caveats from section
+[Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
