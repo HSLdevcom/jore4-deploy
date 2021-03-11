@@ -163,6 +163,23 @@
             }
           },
           {
+            "name": "[concat(parameters('privateSubnetName'),'-db')]",
+            "properties": {
+              "addressPrefix": "[concat(parameters('cidrPrefix'), '.192/28')]",
+              "networkSecurityGroup": {
+                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('privateNsgName'))]"
+              },
+              "delegations": [
+                {
+                  "name": "dbDelegation",
+                  "properties": {
+                    "serviceName": "Microsoft.DBforPostgreSQL/flexibleServers"
+                  }
+                }
+              ]
+            }
+          },
+          {
             "name": "[parameters('publicSubnetName')]",
             "properties": {
               "addressPrefix": "[concat(parameters('cidrPrefix'), '.232/29')]",

@@ -1,0 +1,172 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "project": {
+      "type": "string",
+      "metadata": {
+        "description": "The short name of the project. Usually same as the name of the subscription in Azure."
+      }
+    },
+    "environment": {
+      "type": "string",
+      "metadata": {
+        "description": "The target environment. Typically dev, test or prod."
+      }
+    },
+    "serverName": {
+      "type": "string",
+      "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-db')]",
+      "metadata": {
+        "description": "Server Name for Azure database for PostgreSQL"
+      }
+    },
+    "administratorLogin": {
+      "type": "string",
+      "minLength": 5,
+      "metadata": {
+        "description": "Database administrator login name"
+      }
+    },
+    "administratorLoginPassword": {
+      "type": "securestring",
+      "minLength": 8,
+      "metadata": {
+        "description": "Database administrator password"
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "defaultValue": "Standard_D2s_v3",
+      "metadata": {
+        "description": "Azure database for PostgreSQL sku name"
+      }
+    },
+    "skuTier": {
+      "type": "string",
+      "defaultValue": "GeneralPurpose",
+      "metadata": {
+        "description": "Azure database for PostgreSQL pricing tier"
+      }
+    },
+    "storageSizeMB": {
+      "type": "int",
+      "defaultValue": 32768,
+      "metadata": {
+        "description": "The storage size used by the database, in megabytes"
+      }
+    },
+    "availabilityZone": {
+      "type": "string",
+      "defaultValue": "",
+      "metadata": {
+        "description": "The availability zone the main database instance should be deployed to"
+      }
+    },
+    "postgresqlVersion": {
+      "type": "string",
+      "defaultValue": "12",
+      "metadata": {
+        "description": "PostgreSQL version"
+      }
+    },
+    "location": {
+      "type": "string",
+      "defaultValue": "[resourceGroup().location]",
+      "metadata": {
+        "description": "Location for all resources."
+      }
+    },
+    "backupRetentionDays": {
+      "type": "int",
+      "defaultValue": 7,
+      "metadata": {
+        "description": "PostgreSQL Server backup retention days"
+      }
+    },
+    "geoRedundantBackup": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "metadata": {
+        "description": "Geo-Redundant Backup setting"
+      }
+    },
+    "haEnabled": {
+      "type": "string",
+      "defaultValue": "Disabled",
+      "metadata": {
+        "description": "High Availability mode"
+      }
+    },
+    "vnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the target VNet."
+      },
+      "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-vnet')]"
+    },
+    "dbSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the database subnet."
+      },
+      "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-private-db')]"
+    },
+    "requiredUpTimeTag": {
+      "type": "string",
+      "defaultValue": "always-on",
+      "metadata": {
+        "description": "The tag describing the required uptime."
+      }
+    },
+    "lockTag": {
+      "type": "string",
+      "defaultValue": "cannotdelete",
+      "metadata": {
+        "description": "The tag describing the required lock."
+      }
+    }
+  },
+  "variables": {
+    "dbSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('dbSubnetName'))]",
+    "vnetData": {
+      "subnetArmResourceId": "[variables('dbSubnetRef')]"
+    }
+  },
+  "resources": [
+    {
+      "type": "Microsoft.DBforPostgreSQL/flexibleServers",
+      "apiVersion": "2020-02-14-privatepreview",
+      "location": "[parameters('location')]",
+      "name": "[parameters('serverName')]",
+      "properties": {
+        "version": "[parameters('postgresqlVersion')]",
+        "administratorLogin": "[parameters('administratorLogin')]",
+        "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
+        "publicNetworkAccess": "Disabled",
+        "DelegatedSubnetArguments": "[variables('vnetData')]",
+        "haEnabled": "[parameters('haEnabled')]",
+        "storageProfile": {
+          "storageMB": "[parameters('storageSizeMB')]",
+          "backupRetentionDays": "[parameters('backupRetentionDays')]",
+          "geoRedundantBackup": "[parameters('geoRedundantBackup')]"
+        },
+        "availabilityZone": "[parameters('availabilityZone')]"
+      },
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "tier": "[parameters('skuTier')]"
+      },
+      "tags": {
+        "requiredUptime": "[parameters('requiredUptimeTag')]",
+        "lock": "[parameters('lockTag')]"
+      }
+    }
+  ],
+  "outputs": {
+    "serverObject": {
+      "type": "object",
+      "value": "[reference(parameters('serverName'))]"
+    }
+  }
+}
