@@ -18,8 +18,6 @@
         value: "{{ cidr_prefix }}"
       bastionTrustedAddresses:
         value: "{{ az_bastion_host_trusted_ips }}"
-      gatewayTrustedAddresses:
-        value: "{{ az_gateway_trusted_ips }}"
     tags:
       ansible: "workaround"
     template: "{{ lookup('file', 'templates/network.arm.json') }}"

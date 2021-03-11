@@ -27,13 +27,6 @@
       },
       "defaultValue": ["194.100.20.48/28"]
     },
-    "gatewayTrustedAddresses": {
-      "type": "array",
-      "metadata": {
-        "description": "The IP addresses allowed to connect to the service."
-      },
-      "defaultValue": ["194.100.20.48/28"]
-    },
     "location": {
       "type": "string",
       "metadata": {
@@ -91,7 +84,25 @@
       "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-nsg-gateway')]"
     }
   },
-  "variables": {},
+  "variables": {
+    "denyInternetRule": {
+      "name": "deny_internet",
+      "properties": {
+        "protocol": "*",
+        "sourcePortRange": "*",
+        "destinationPortRange": "*",
+        "sourceAddressPrefix": "Internet",
+        "destinationAddressPrefix": "*",
+        "access": "Deny",
+        "priority": 1000,
+        "direction": "Inbound",
+        "sourcePortRanges": [],
+        "destinationPortRanges": [],
+        "sourceAddressPrefixes": [],
+        "destinationAddressPrefixes": []
+      }
+    }
+  },
   "resources": [
     {
       "type": "Microsoft.Network/virtualNetworks",
@@ -181,23 +192,7 @@
               "destinationAddressPrefixes": []
             }
           },
-          {
-            "name": "deny_internet",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "Internet",
-              "destinationAddressPrefix": "*",
-              "access": "Deny",
-              "priority": 1000,
-              "direction": "Inbound",
-              "sourcePortRanges": [],
-              "destinationPortRanges": [],
-              "sourceAddressPrefixes": [],
-              "destinationAddressPrefixes": []
-            }
-          }
+          "[variables('denyInternetRule')]"
         ]
       }
     },
@@ -256,23 +251,7 @@
               "destinationAddressPrefixes": []
             }
           },
-          {
-            "name": "deny_internet",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "Internet",
-              "destinationAddressPrefix": "*",
-              "access": "Deny",
-              "priority": 1000,
-              "direction": "Inbound",
-              "sourcePortRanges": [],
-              "destinationPortRanges": [],
-              "sourceAddressPrefixes": [],
-              "destinationAddressPrefixes": []
-            }
-          }
+          "[variables('denyInternetRule')]"
         ]
       }
     },
@@ -282,25 +261,7 @@
       "name": "[parameters('privateNsgName')]",
       "location": "[parameters('location')]",
       "properties": {
-        "securityRules": [
-          {
-            "name": "deny_internet",
-            "properties": {
-              "protocol": "*",
-              "sourcePortRange": "*",
-              "destinationPortRange": "*",
-              "sourceAddressPrefix": "Internet",
-              "destinationAddressPrefix": "*",
-              "access": "Deny",
-              "priority": 1000,
-              "direction": "Inbound",
-              "sourcePortRanges": [],
-              "destinationPortRanges": [],
-              "sourceAddressPrefixes": [],
-              "destinationAddressPrefixes": []
-            }
-          }
-        ]
+        "securityRules": ["[variables('denyInternetRule')]"]
       }
     }
   ],

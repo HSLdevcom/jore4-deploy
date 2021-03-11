@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD025 MD040 MD034 -->
+
 # jore4-deploy
 
 Deployment scripts for provisioning and configuring JORE4 infrastructure in Azure.
@@ -9,6 +11,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Preliminaries](#preliminaries)
+- [Development](#development)
 - [How to Run](#how-to-run)
 - [Roles](#roles)
 - [Scripts](#scripts)
@@ -28,7 +31,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Troubleshooting](#troubleshooting)
     - [7. Provisioning a Domain](#7-provisioning-a-domain)
     - [8. Provisioning a Certificate](#8-provisioning-a-certificate)
-  - [Configuration](#configuration-1)
+  - [Configurations](#configurations)
     - [Adding services to Kubernetes cluster](#adding-services-to-kubernetes-cluster)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -39,6 +42,11 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 - Azure CLI (at least version 2.19.1)
 - Docker (with docker-compose)
 - Kubectl and Helm (for deployments to Kubernetes)
+
+# Development
+
+When making changes to this codebase, CI automatically runs Github Super-Linter to check the code
+format (https://github.com/github/super-linter). To run it manually, use `./development.sh lint`.
 
 # How to Run
 
@@ -152,11 +160,13 @@ See https://docs.microsoft.com/en-us/azure/security-center/security-center-enabl
 ### 4. Provisioning a bastion host and configuring it
 
 To provision the bastion host, run
+
 ```
 playdev play-provision-bastion-host.yml
 ```
 
 This will
+
 - create a virtual machine that has network interfaces in both private and public subnets of the
   vnet created by `play-provision-rg-and-nets.yml`,
 - assign a public IP to that VM's public subnet network interface,
@@ -166,6 +176,7 @@ This will
 For initial deployment of the CA public key, the ansible environment's public SSH key is used. If
 the project CA keypair is changed at a later stage, it has to be updated manually on the bastion
 host in the files
+
 - /etc/ssh/ca.pub and
 - /home/hsladmin/.ssh/authorized_keys
 
@@ -376,7 +387,7 @@ for fixing the key-vault binding as the PUT endpoint
 (https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/createorupdatecertificate)
 does not work in every case.
 
-## Configuration
+## Configurations
 
 ### Adding services to Kubernetes cluster
 
