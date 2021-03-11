@@ -111,6 +111,13 @@
       "metadata": {
         "description": "The tag describing the required uptime."
       }
+    },
+    "adminUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the user that can access the bastion host VM."
+      },
+      "defaultValue": "hsladmin"
     }
   },
   "variables": {
@@ -222,7 +229,7 @@
         },
         "osProfile": {
           "computerName": "[parameters('vmName')]",
-          "adminUsername": "hsladmin",
+          "adminUsername": "[parameters('adminUsername')]",
           "linuxConfiguration": {
             "disablePasswordAuthentication": true,
             "ssh": {
