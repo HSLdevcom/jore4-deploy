@@ -24,3 +24,4 @@ jobs:
           DEFAULT_BRANCH: main
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VALIDATE_ANSIBLE: false # ansible-lint seems to be broken, throws internal-error, couldn't find a reason why
+          VALIDATE_KUBERNETES_KUBEVAL: false # it cannot validate non-default resource types and kustomize patches
