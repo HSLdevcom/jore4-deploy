@@ -26,3 +26,13 @@ az_gateway_publicip_name: "{{ az_resource_group_name }}-appgw-pip"
 # Number of VMs that serve the Kubernetes cluster by default.
 # ACI is used as a temporary measure to create more nodes in case of a burst in load
 az_aks_initial_node_count: 2
+
+# Database
+az_psql_name: "{{ az_resource_group_name }}-db"
+# info about available tiers: https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/postgresql/flexible-server/concepts-compute-storage.md
+az_psql_sku_name: "Standard_D4s_v3"
+az_psql_storage_size: 262144 # megabytes
+az_psql_high_availability: "Enabled"
+az_psql_backup_retention: 35 # days
+az_psql_backup_georedundant: "Enabled"
+az_psql_admin_username: "dbadminprod"

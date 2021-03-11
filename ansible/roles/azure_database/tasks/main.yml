@@ -1,0 +1,77 @@
+---
+- name: Get credentials for db admin
+  block:
+    - name: Try retrieving credentials from key-vault if they already exist or generate otherwise
+      block:
+        # first, try retrieving existing credentials from keyvault
+        - name: Try retrieving db admin username from keyvault
+          shell: "az keyvault secret show \
+            --vault-name {{ az_resource_group_name }}-vault \
+            --name {{ az_resource_group_name }}-db-admin-username \
+            --output tsv --query 'value'"
+          register: db_admin_username
+        - name: Try retrieving db admin password from keyvault
+          shell: "az keyvault secret show \
+            --vault-name {{ az_resource_group_name }}-vault \
+            --name {{ az_resource_group_name }}-db-admin-password \
+            --output tsv --query 'value'"
+          register: db_admin_password
+        - debug:
+            msg: "Found existing credentials from keyvault for db admin!"
+      rescue:
+        # if any are missing, generate new credentials
+        - name: Insert default db admin username to keyvault
+          shell: "az keyvault secret set \
+            --vault-name {{ az_resource_group_name }}-vault \
+            --name {{ az_resource_group_name }}-db-admin-username \
+            --value '{{ az_psql_admin_username }}' \
+            --output tsv --query 'value'"
+          register: db_admin_username
+        - name: Generate db admin password
+          shell: "cat /dev/urandom | tr -dc 'a-zA-Z0-9_!#@^' | fold -w 16 | head -n 1"
+          register: db_admin_password
+        - name: Insert generated db admin password to keyvault
+          shell: "az keyvault secret set \
+            --vault-name {{ az_resource_group_name }}-vault \
+            --name {{ az_resource_group_name }}-db-admin-password \
+            --value '{{ db_admin_password.stdout }}'"
+        - debug:
+            msg: "Generated new credentials for db admin!"
+
+- name: Create Azure Deployment for the PostgreSQL database
+  azure_rm_deployment:
+    resource_group: "{{ az_resource_group_name }}"
+    location: "{{ az_region_name }}"
+    name: "azure_database"
+    parameters:
+      project:
+        value: "{{ az_project_name }}"
+      environment:
+        value: "{{ az_environment }}"
+      administratorLogin:
+        value: "{{ db_admin_username.stdout }}"
+      administratorLoginPassword:
+        value: "{{ db_admin_password.stdout }}"
+      haEnabled:
+        value: "{{ az_psql_high_availability }}"
+      skuName:
+        value: "{{ az_psql_sku_name }}"
+      storageSizeMB:
+        value: "{{ az_psql_storage_size }}"
+      backupRetentionDays:
+        value: "{{ az_psql_backup_retention }}"
+      geoRedundantBackup:
+        value: "{{ az_psql_backup_georedundant }}"
+    tags:
+      ansible: workaround
+    template: "{{ lookup('file', 'templates/database.arm.json') }}"
+  register: db_output
+
+- debug:
+    var: db_output
+
+- name: Insert db hostname to keyvault
+  shell: "az keyvault secret set \
+    --vault-name {{ az_resource_group_name }}-vault \
+    --name {{ az_resource_group_name }}-db-hostname \
+    --value '{{ db_output.deployment.outputs.serverObject.value.fullyQualifiedDomainName }}'"

@@ -1,0 +1,8 @@
+---
+- name: "Provision PostgreSQL database for {{ az_environment }}"
+  hosts: localhost
+  connection: local
+  gather_facts: false
+
+  roles:
+    - azure_database
