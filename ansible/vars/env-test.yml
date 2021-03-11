@@ -25,4 +25,4 @@ az_gateway_publicip_name: "{{ az_resource_group_name }}-appgw-pip"
 # Kubernetes
 # Number of VMs that serve the Kubernetes cluster by default.
 # ACI is used as a temporary measure to create more nodes in case of a burst in load
-az_aks_initial_node_count: 1
+az_aks_initial_node_count: 2
