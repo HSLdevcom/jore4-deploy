@@ -93,6 +93,20 @@
                 "description": "The name of the gateway Network Security Group."
             },
             "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-nsg-gateway')]"
+        },
+        "commonResourceGroupName": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the resource group common to all envs."
+            },
+            "defaultValue": "[concat(parameters('project'), '-common')]"
+        },
+        "privateRouteTableName": {
+            "type": "string",
+            "metadata": {
+              "description": "The name of the route table to use with the private subnet."
+            },
+            "defaultValue": "[concat(parameters('project'), '-route')]"
         }
     },
     "variables": {},
@@ -120,6 +134,9 @@
                             "addressPrefix": "[concat(parameters('cidrPrefix'), '.0/25')]",
                             "networkSecurityGroup": {
                                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('privateNsgName'))]"
+                            },
+                            "routeTable": {
+                                "id": "[resourceId(parameters('commonResourceGroupName'), 'Microsoft.Network/routeTables', parameters('privateRouteTableName'))]"
                             }
                         }
                     },

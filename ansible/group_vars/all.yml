@@ -4,6 +4,8 @@ az_project_name: "hsl-jore4"
 az_project_domain: "jore.hsl.fi"
 az_region_name: "westeurope"
 az_resource_group_name: "{{ az_project_name }}-{{ az_environment }}"
+az_common_resource_group_name: "{{ az_project_name }}-common"
+az_private_route_table_name: "jore4-route"
 
 #Common packages
 default_packages:
