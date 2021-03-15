@@ -1,200 +1,194 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "project": {
-           "type": "string",
-           "metadata": {
-                "description": "The short name of the project. Usually same as the name of the subscription in Azure."
-            }
-        },
-        "environment": {
-           "type": "string",
-           "metadata": {
-                "description": "The target environment. Typically dev, test or prod."
-            }
-        },
-        "location": {
-           "type": "string",
-           "metadata": {
-                "description": "The region used for the resources."
-            },
-            "defaultValue": "[resourceGroup().location]"
-        },
-        "appgwName": {
-           "type": "string",
-           "metadata": {
-                "description": "The name of the Application Gateway."
-            },
-            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-appgw')]"
-        },
-        "vnetName": {
-           "type": "string",
-           "metadata": {
-                "description": "The name of the target VNet."
-            },
-            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-vnet')]"
-        },
-        "gatewaySubnetName": {
-           "type": "string",
-           "metadata": {
-                "description": "The name of the gateway subnet."
-            },
-            "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-gateway')]"
-        },
-        "publicIpName": {
-           "type": "string",
-           "metadata": {
-                "description": "The name of the public IP resource."
-            },
-            "defaultValue": "[concat(parameters('appgwName'), '-pip')]"
-        },
-        "identityName": {
-           "type": "string",
-           "metadata": {
-                "description": "The name of the user-managed identity for the Application Gateway."
-            },
-            "defaultValue": "[concat(parameters('project'), '-vault-user')]"
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "project": {
+      "type": "string",
+      "metadata": {
+        "description": "The short name of the project. Usually same as the name of the subscription in Azure."
+      }
     },
-    "variables": {
-        "appGwRef": "[resourceId('Microsoft.Network/applicationGateways', parameters('appgwName'))]",
-        "gatewaySubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('gatewaySubnetName'))]",
-        "publicIpRef": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpName'))]",
-        "identityRef": "[resourceId(concat(parameters('project'), '-common'), 'Microsoft.ManagedIdentity/UserAssignedIdentities', parameters('identityName'))]"
+    "environment": {
+      "type": "string",
+      "metadata": {
+        "description": "The target environment. Typically dev, test or prod."
+      }
     },
-    "resources": [
-        {
-            "type": "Microsoft.Network/publicIPAddresses",
-            "apiVersion": "2019-11-01",
-            "name": "[parameters('publicIpName')]",
-            "location": "[parameters('location')]",
-            "sku": {
-                "name": "Standard"
-            },
-            "properties": {
-                "publicIPAddressVersion": "IPv4",
-                "publicIPAllocationMethod": "Static",
-                "idleTimeoutInMinutes": 4,
-                "ipTags": []
-            }
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "The region used for the resources."
+      },
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "appgwName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the Application Gateway."
+      },
+      "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-appgw')]"
+    },
+    "vnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the target VNet."
+      },
+      "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-vnet')]"
+    },
+    "gatewaySubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the gateway subnet."
+      },
+      "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-gateway')]"
+    },
+    "publicIpName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the public IP resource."
+      },
+      "defaultValue": "[concat(parameters('appgwName'), '-pip')]"
+    },
+    "identityName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the user-managed identity for the Application Gateway."
+      },
+      "defaultValue": "[concat(parameters('project'), '-vault-user')]"
+    }
+  },
+  "variables": {
+    "appGwRef": "[resourceId('Microsoft.Network/applicationGateways', parameters('appgwName'))]",
+    "gatewaySubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('gatewaySubnetName'))]",
+    "publicIpRef": "[resourceId('Microsoft.Network/publicIPAddresses', parameters('publicIpName'))]",
+    "identityRef": "[resourceId(concat(parameters('project'), '-common'), 'Microsoft.ManagedIdentity/UserAssignedIdentities', parameters('identityName'))]"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Network/publicIPAddresses",
+      "apiVersion": "2019-11-01",
+      "name": "[parameters('publicIpName')]",
+      "location": "[parameters('location')]",
+      "sku": {
+        "name": "Standard"
+      },
+      "properties": {
+        "publicIPAddressVersion": "IPv4",
+        "publicIPAllocationMethod": "Static",
+        "idleTimeoutInMinutes": 4,
+        "ipTags": []
+      }
+    },
+    {
+      "type": "Microsoft.Network/applicationGateways",
+      "apiVersion": "2020-05-01",
+      "name": "[parameters('appgwName')]",
+      "location": "[parameters('location')]",
+      "dependsOn": ["[variables('publicIpRef')]"],
+      "zones": ["1", "2", "3"],
+      "properties": {
+        "sku": {
+          "name": "Standard_v2",
+          "tier": "Standard_v2"
         },
-        {
-            "type": "Microsoft.Network/applicationGateways",
-            "apiVersion": "2020-05-01",
-            "name": "[parameters('appgwName')]",
-            "location": "[parameters('location')]",
-            "dependsOn": [
-                "[variables('publicIpRef')]"
-            ],
-             "zones": [
-                "1",
-                "2",
-                "3"
-            ],
+        "sslPolicy": {
+          "policyType": "Predefined",
+          "policyName": "AppGwSslPolicy20170401S"
+        },
+        "gatewayIPConfigurations": [
+          {
+            "name": "app_gateway_ip_config",
             "properties": {
-                "sku": {
-                    "name": "Standard_v2",
-                    "tier": "Standard_v2"
-                },
-                "sslPolicy": {
-                    "policyType": "Predefined",
-                    "policyName": "AppGwSslPolicy20170401S"
-                },
-                "gatewayIPConfigurations": [
-                    {
-                        "name": "app_gateway_ip_config",
-                        "properties": {
-                            "subnet": {
-                                "id": "[variables('gatewaySubnetRef')]"
-                            }
-                        }
-                    }
-                ],
-                "frontendIPConfigurations": [
-                    {
-                        "name": "appGatewayFrontendIP",
-                        "properties": {
-                            "privateIPAllocationMethod": "Dynamic",
-                            "publicIPAddress": {
-                                "id": "[variables('publicIpRef')]"
-                            }
-                        }
-                    }
-                ],
-                "frontendPorts": [
-                    {
-                        "name": "port_80",
-                        "properties": {
-                            "port": 80
-                        }
-                    }
-                ],
-                "backendAddressPools": [
-                    {
-                        "name": "default",
-                        "properties": {
-                            "backendAddresses": []
-                        }
-                    }
-                ],
-                "backendHttpSettingsCollection": [
-                    {
-                        "name": "default",
-                        "properties": {
-                            "port": 80,
-                            "protocol": "Http",
-                            "cookieBasedAffinity": "Disabled",
-                            "pickHostNameFromBackendAddress": false,
-                            "requestTimeout": 20
-                        }
-                    }
-                ],
-                "httpListeners": [
-                    {
-                        "name": "default",
-                        "properties": {
-                            "frontendIPConfiguration": {
-                                "id": "[concat(variables('appGwRef'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
-                            },
-                            "frontendPort": {
-                                "id": "[concat(variables('appGwRef'), '/frontendPorts/port_80')]"
-                            },
-                            "protocol": "Http",
-                            "hostNames": [],
-                            "requireServerNameIndication": false
-                        }
-                    }
-                ],
-                "requestRoutingRules": [
-                    {
-                        "name": "default",
-                        "properties": {
-                            "ruleType": "Basic",
-                            "httpListener": {
-                                "id": "[concat(variables('appGwRef'), '/httpListeners/default')]"
-                            },
-                            "backendAddressPool": {
-                                "id": "[concat(variables('appGwRef'), '/backendAddressPools/default')]"
-                            },
-                            "backendHttpSettings": {
-                                "id": "[concat(variables('appGwRef'), '/backendHttpSettingsCollection/default')]"
-                            }
-                        }
-                    }
-                ],
-                "enableHttp2": false,
-                "autoscaleConfiguration": {
-                    "minCapacity": 0,
-                    "maxCapacity": 3
-                }
-            },
-            "identity": {
-                "type": "UserAssigned",
-                "userAssignedIdentities": {
-                    "[variables('identityRef')]": {}
-                }
+              "subnet": {
+                "id": "[variables('gatewaySubnetRef')]"
+              }
             }
+          }
+        ],
+        "frontendIPConfigurations": [
+          {
+            "name": "appGatewayFrontendIP",
+            "properties": {
+              "privateIPAllocationMethod": "Dynamic",
+              "publicIPAddress": {
+                "id": "[variables('publicIpRef')]"
+              }
+            }
+          }
+        ],
+        "frontendPorts": [
+          {
+            "name": "port_80",
+            "properties": {
+              "port": 80
+            }
+          }
+        ],
+        "backendAddressPools": [
+          {
+            "name": "default",
+            "properties": {
+              "backendAddresses": []
+            }
+          }
+        ],
+        "backendHttpSettingsCollection": [
+          {
+            "name": "default",
+            "properties": {
+              "port": 80,
+              "protocol": "Http",
+              "cookieBasedAffinity": "Disabled",
+              "pickHostNameFromBackendAddress": false,
+              "requestTimeout": 20
+            }
+          }
+        ],
+        "httpListeners": [
+          {
+            "name": "default",
+            "properties": {
+              "frontendIPConfiguration": {
+                "id": "[concat(variables('appGwRef'), '/frontendIPConfigurations/appGatewayFrontendIP')]"
+              },
+              "frontendPort": {
+                "id": "[concat(variables('appGwRef'), '/frontendPorts/port_80')]"
+              },
+              "protocol": "Http",
+              "hostNames": [],
+              "requireServerNameIndication": false
+            }
+          }
+        ],
+        "requestRoutingRules": [
+          {
+            "name": "default",
+            "properties": {
+              "ruleType": "Basic",
+              "httpListener": {
+                "id": "[concat(variables('appGwRef'), '/httpListeners/default')]"
+              },
+              "backendAddressPool": {
+                "id": "[concat(variables('appGwRef'), '/backendAddressPools/default')]"
+              },
+              "backendHttpSettings": {
+                "id": "[concat(variables('appGwRef'), '/backendHttpSettingsCollection/default')]"
+              }
+            }
+          }
+        ],
+        "enableHttp2": false,
+        "autoscaleConfiguration": {
+          "minCapacity": 0,
+          "maxCapacity": 3
         }
-    ]
+      },
+      "identity": {
+        "type": "UserAssigned",
+        "userAssignedIdentities": {
+          "[variables('identityRef')]": {}
+        }
+      }
+    }
+  ]
 }
