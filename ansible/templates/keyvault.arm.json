@@ -1,103 +1,91 @@
 {
-    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
-    "contentVersion": "1.0.0.0",
-    "parameters": {
-        "keyVaultName": {
-           "type": "string",
-           "metadata": {
-                "description": "The name for the key vault."
-            }
-        },
-        "keyVaultUser": {
-           "type": "string",
-           "metadata": {
-                "description": "The name for the key vault user."
-            },
-            "defaultValue": "[concat(parameters('keyVaultName'), '-user')]"
-        },
-        "location": {
-           "type": "string",
-           "metadata": {
-                "description": "The region used for the resources."
-            },
-            "defaultValue": "[resourceGroup().location]"
-        },
-        "azureAdTenantId": {
-           "type": "string",
-           "metadata": {
-                "description": "The tenant ID of Azure Active Directory"
-            },
-            "defaultValue": "572a41dd-c389-4f0a-b256-aefd1bf149d7"
-        },
-        "developerGroupObjectId": {
-            "type": "string",
-            "metadata": {
-                "description": "The object ID of the developer AAD group"
-            }
-        },
-        "createMode": {
-           "type": "string",
-           "metadata": {
-                "description": "If you are recreating a soft-deleted Key Vault select 'recover', otherwise 'default'."
-            },
-            "defaultValue": "default",
-            "allowedValues": [
-                "default",
-                "recover"
-            ]
-        }
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "keyVaultName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name for the key vault."
+      }
     },
-    "variables": {},
-    "resources": [
-        {
-            "type": "Microsoft.KeyVault/vaults",
-            "apiVersion": "2016-10-01",
-            "name": "[parameters('keyVaultName')]",
-            "location": "[parameters('location')]",
-            "properties": {
-                "sku": {
-                    "family": "A",
-                    "name": "standard"
-                },
-                "tenantId": "[parameters('azureAdTenantId')]",
-                "accessPolicies": [
-                    {
-                        "tenantId": "[parameters('azureAdTenantId')]",
-                        "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('keyVaultUser'))).principalId]",
-                        "permissions": {
-                            "secrets": [
-                                "get",
-                                "list"
-                            ]
-                        }
-                    },
-                    {
-                        "tenantId": "[parameters('azureAdTenantId')]",
-                        "objectId": "[parameters('developerGroupObjectId')]",
-                        "permissions": {
-                            "keys": [
-                                "all"
-                            ],
-                            "secrets": [
-                                "all"
-                            ],
-                            "certificates": [
-                                "all"
-                            ]
-                        }
-                    }
-                ],
-                "createMode": "[parameters('createMode')]",
-                "enableSoftDelete": true
-            }
+    "keyVaultUser": {
+      "type": "string",
+      "metadata": {
+        "description": "The name for the key vault user."
+      },
+      "defaultValue": "[concat(parameters('keyVaultName'), '-user')]"
+    },
+    "location": {
+      "type": "string",
+      "metadata": {
+        "description": "The region used for the resources."
+      },
+      "defaultValue": "[resourceGroup().location]"
+    },
+    "azureAdTenantId": {
+      "type": "string",
+      "metadata": {
+        "description": "The tenant ID of Azure Active Directory"
+      },
+      "defaultValue": "572a41dd-c389-4f0a-b256-aefd1bf149d7"
+    },
+    "developerGroupObjectId": {
+      "type": "string",
+      "metadata": {
+        "description": "The object ID of the developer AAD group"
+      }
+    },
+    "createMode": {
+      "type": "string",
+      "metadata": {
+        "description": "If you are recreating a soft-deleted Key Vault select 'recover', otherwise 'default'."
+      },
+      "defaultValue": "default",
+      "allowedValues": ["default", "recover"]
+    }
+  },
+  "variables": {},
+  "resources": [
+    {
+      "type": "Microsoft.KeyVault/vaults",
+      "apiVersion": "2016-10-01",
+      "name": "[parameters('keyVaultName')]",
+      "location": "[parameters('location')]",
+      "properties": {
+        "sku": {
+          "family": "A",
+          "name": "standard"
         },
-        {
-            "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
-            "apiVersion": "2018-11-30",
-            "name": "[parameters('keyVaultUser')]",
-            "location": "[parameters('location')]"
-        }
-    ],
-    "outputs": {},
-    "functions": []
+        "tenantId": "[parameters('azureAdTenantId')]",
+        "accessPolicies": [
+          {
+            "tenantId": "[parameters('azureAdTenantId')]",
+            "objectId": "[reference(resourceId('Microsoft.ManagedIdentity/userAssignedIdentities', parameters('keyVaultUser'))).principalId]",
+            "permissions": {
+              "secrets": ["get", "list"]
+            }
+          },
+          {
+            "tenantId": "[parameters('azureAdTenantId')]",
+            "objectId": "[parameters('developerGroupObjectId')]",
+            "permissions": {
+              "keys": ["all"],
+              "secrets": ["all"],
+              "certificates": ["all"]
+            }
+          }
+        ],
+        "createMode": "[parameters('createMode')]",
+        "enableSoftDelete": true
+      }
+    },
+    {
+      "type": "Microsoft.ManagedIdentity/userAssignedIdentities",
+      "apiVersion": "2018-11-30",
+      "name": "[parameters('keyVaultUser')]",
+      "location": "[parameters('location')]"
+    }
+  ],
+  "outputs": {},
+  "functions": []
 }
