@@ -97,7 +97,16 @@
     },
     "variables": {},
     "resources": [
-        {
+      {
+            "type": "Microsoft.Authorization/locks",
+            "apiVersion": "2016-09-01",
+            "name": "resourceGroupLock",
+            "properties": {
+                "level": "CanNotDelete",
+                "notes": "Use the Owner role to delete resources."
+            }
+      },
+      {
             "type": "Microsoft.Network/virtualNetworks",
             "apiVersion": "2019-11-01",
             "name": "[parameters('vnetName')]",
