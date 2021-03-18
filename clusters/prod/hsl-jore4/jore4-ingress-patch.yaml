@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: jore4-ingress
+  namespace: hsl-jore4
+  annotations:
+    appgw.ingress.kubernetes.io/appgw-ssl-certificate: hsl-jore4-prod-cert
+
+spec:
+  rules:
+    # only listen to requests from this host
+    - host: jore.hsl.fi
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: jore4-backend
+              servicePort: 80
