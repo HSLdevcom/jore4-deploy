@@ -1,35 +1,35 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: jore4-backend
+  name: jore4-frontend
   namespace: hsl-jore4
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: jore4-backend
+      app: jore4-frontend
   template:
     metadata:
       labels:
-        app: jore4-backend
+        app: jore4-frontend
     spec:
       containers:
-        - name: jore4-backend-image
+        - name: jore4-frontend-image
           image: <replace>
           imagePullPolicy: Always
           ports:
-            - containerPort: 8080
+            - containerPort: 80
       restartPolicy: Always
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: jore4-backend
+  name: jore4-frontend
   namespace: hsl-jore4
 spec:
   selector:
-    app: jore4-backend
+    app: jore4-frontend
   ports:
     - protocol: TCP
-      port: 8080
-      targetPort: 8080
+      port: 80
+      targetPort: 80
