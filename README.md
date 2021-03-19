@@ -54,8 +54,8 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 
 # Development
 
-When making changes to this codebase, CI automatically runs Github Super-Linter to check the code
-format (https://github.com/github/super-linter). To run it manually, use `./development.sh lint`.
+When making changes to this codebase, CI automatically runs Github [Super-Linter](https://github.com/github/super-linter) to check the code
+format. To run it manually, use `./development.sh lint`.
 
 # How to Run
 
@@ -79,8 +79,8 @@ simplify running the scripts against a chosen environment.
 # Roles
 
 For some scripts, you need to temporarily elevate your role to e.g. create new role bindings for
-managed identities. You may do so here:
-https://portal.azure.com/#blade/Microsoft_Azure_PIMCommon/ActivationMenuBlade/azurerbac/provider/azurerbac
+managed identities. You may do so [here](https://portal.azure.com/#blade/Microsoft_Azure_PIMCommon/ActivationMenuBlade/azurerbac/provider/azurerbac).
+
 
 # Scripts
 
@@ -194,7 +194,7 @@ For instructions on how to connect to the bastion host, see the
 
 The playbook `play-provision-bastion-host.yml` and its roles and templates have been adopted from
 the playbooks `play-provision-bastion-host.yml` and `play-configure-server-ssh.yml` found in the
-the repository https://gitlab.hsl.fi/platforms/server-based .
+the [server-based](https://gitlab.hsl.fi/platforms/server-based) repository.
 
 ### 5. Provisioning an application gateway
 
@@ -212,8 +212,8 @@ load balancing of the HTTP requests.
 Note that when first provisioning this, there are no certificates attached, neither are any listeners
 created. Those will be automatically created by Kubernetes's Application Gateway Ingress Controller
 (AGIC). AGIC also does all the necessary changes whenever you create/modify/delete services from the
-Kubernetes cluster. More info at:
-https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview
+Kubernetes cluster.
+See [this](https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-overview) for more info.
 
 Warning: if you rerun this playbook, it will also remove all the existing listeners that AGIC
 has created. If happens so, redo the Kubernetes deployment to recreate all the listeners.
@@ -293,8 +293,8 @@ If not, fix it by rerunning the Kubernetes playbook
 
 #### Troubleshooting AKS
 
-For troubleshooting, see article:
-https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-troubleshoot
+For troubleshooting, see [this](https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-troubleshoot) article:
+
 
 If you see Authorization errors in the AGIC pod logs
 (`kubectl logs ingress-appgw-deployment-xxxx --namespace kube-system`), they probably originate from
@@ -355,7 +355,7 @@ App Service Certificates renew automatically once a year. This is a wildcard (`*
 certificate that applies to all environments. After provisioning, you will need to manually visit
 Azure Portal to bind the certificate to the `hsl-jore4-vault` in the `hsl-jore4-common` resource
 group. (See
-https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate#import-an-app-service-certificate)
+[docs](https://docs.microsoft.com/en-us/azure/app-service/configure-ssl-certificate#import-an-app-service-certificate)).
 You also need to wait for domain verification for the certificate by HSL admins (can check its
 progress on Azure Portal)
 
@@ -387,13 +387,10 @@ metadata:
 [...]
 ```
 
-For troubleshooting the App Service Certificate, it's a good idea to use the Azure REST API
-(https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/get). Note that
+For troubleshooting the App Service Certificate, it's a good idea to use the [Azure REST API](https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/get). Note that
 when a certificate is broken (e.g. complains that keyVaultId is null or cannot load the certificate
-information on the Azure Portal), then it's best to use the PATCH endpoint
-(https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/updatecertificate)
-for fixing the key-vault binding as the PUT endpoint
-(https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/createorupdatecertificate)
+information on the Azure Portal), then it's best to use the [PATCH endpoint](https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/updatecertificate)
+for fixing the key-vault binding as the [PUT endpoint](https://docs.microsoft.com/en-us/rest/api/appservice/appservicecertificateorders/createorupdatecertificate)
 does not work in every case.
 
 ## Configurations
@@ -501,7 +498,7 @@ for you that is already pretty simple to just edit in a text editor. To update F
 on using the CLI to update the `gotk-components.yaml` file.
 
 Here are some instructions for the manual bootstrapping process if you want to go through it again,
-based on: https://toolkit.fluxcd.io/guides/installation/#generic-git-server
+based on [official documentation](https://toolkit.fluxcd.io/guides/installation/#generic-git-server).
 
 1. log in to kubernetes (az login, az aks get-credentials... or `./kubernetes.sh login dev`)
 
@@ -584,8 +581,7 @@ done.
 _Option no 3_
 
 If you want to develop the Kubernetes scripts in a safe environment, you could also use Kind
-(Kubernetes in Docker). See instructions here:
-https://docs.fluxcd.io/projects/helm-operator/en/stable/contributing/get-started-developing/#prepare-your-environment
+(Kubernetes in Docker). See instructions [here](https://docs.fluxcd.io/projects/helm-operator/en/stable/contributing/get-started-developing/#prepare-your-environment).
 
 #### Troubleshooting Flux
 
@@ -606,8 +602,7 @@ To viewing the logs of a single pod in the Flux namespace, use `kubectl logs XXX
 
 If the flux pods don't start, you may need to increase the number of nodes that are assigned for
 Kubernetes in `ansible/vars/env-dev.yaml` and rerun `play-provision-aks.yaml`. For other
-startup-related issues, see
-https://kubernetes.io/docs/tasks/debug-application-cluster/debug-application/
+startup-related issues, see the [docs](https://kubernetes.io/docs/tasks/debug-application-cluster/debug-application/).
 
 _Uninstall_
 
