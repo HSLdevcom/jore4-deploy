@@ -6,6 +6,7 @@ function az_login {
   echo "Logging in the $1 environment"
 
   az login
+  az account set --subscription "jore4"
   az aks get-credentials --resource-group "hsl-jore4-$1" --name "hsl-jore4-$1-cluster" --overwrite-existing
 }
 

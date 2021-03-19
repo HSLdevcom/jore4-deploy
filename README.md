@@ -95,6 +95,15 @@ the script description.
 _For simplicity, the scripts below are only showing what happens in the DEV environment. The exact
 same outcome is expected when using the `playtest` and `playprod` aliases._
 
+# Subscriptions
+
+When first logging in to Azure with `az login` (e.g. for your Ansible scripts or for Kubernetes),
+your subscription by default will be pointed to the HSL default subscription. To be able to create
+and view resources in the JORE4 subscription, you have to point your Azure CLI to the proper
+context by using: `az account set --subscription "jore4"`
+
+Note that `start-ansible-shell.sh` and `kubernetes.sh` automatically does this for you.
+
 ## Provisioning
 
 ### 1. Provisioning resource groups and network
