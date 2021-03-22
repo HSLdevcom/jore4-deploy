@@ -111,6 +111,14 @@ Creates the `hsl-jore4-common` and `hsl-jore4-dev` resource groups.
   secrets)
 - `hsl-jore4-dev` is meant to store resources that are only for the DEV environment (e.g. DEV
   secrets, DEV Kubernetes cluster, DEV database)
+- resources in the `hsl-jore4-test` and `hsl-jore4-prod` resource groups (created using the
+  `playtest` or `playprod` aliases) as well as resources in the `hsl-jore4-common` resource group
+  will be deletion protected using a CanNotDelete-lock, the lock is created via the
+  `lock: cannotdelete`-tag
+- resources in the `hsl-jore4-dev` resource group are not protected by such a lock
+- use the Owner-role in order to remove the lock and to be able to delete resources
+- for more information on the locking mechanism and on how to use the Owner-role, see the
+  [HSL Azure dashboard](https://portal.azure.com/#@hslfi.onmicrosoft.com/dashboard/arm/subscriptions/b13714ed-2c1b-416c-89a9-909524515193/resourcegroups/dashboards/providers/microsoft.portal/dashboards/bcea8162-492c-4428-ba8c-19321eceb0cd)
 
 Creates basic network setup:
 
