@@ -7,3 +7,4 @@ patchesStrategicMerge:
   # apply stage-specific patches
   - jore4-backend-patch.yaml
   - jore4-ingress-patch.yaml
+  - jore4-frontend-patch.yaml
