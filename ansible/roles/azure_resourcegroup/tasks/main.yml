@@ -1,19 +1,33 @@
 ---
 - name: "Create common resource group for the subscription"
   azure_rm_resourcegroup:
-    name:  "{{ az_common_resource_group_name }}"
+    name: "{{ az_common_resource_group_name }}"
     location: "{{ az_region_name }}"
     tags:
       usage: "production"
       critical: "yes"
+      lock: "cannotdelete"
   ignore_errors: "{{ ansible_check_mode }}"
+
+- name: "Gather the tags for the resource group"
+  set_fact:
+    tags:
+      usage: "{{ az_usage_tag_default }}"
+      critical: "{{ az_critical_tag_default }}"
+      requiredUptime: "{{ az_requireduptime_tag_default }}"
+
+- name: "Add deletion lock tag to the resource group tags"
+  set_fact:
+    tags: "{{ tags | combine({ \"lock\": \"cannotdelete\" }) }}"
+  when: az_enable_deletion_protection == true
+
+- name: "Show tags to be applied to resource group"
+  debug: var=tags
 
 - name: "Create the main resource group for {{ az_environment }} environment"
   azure_rm_resourcegroup:
     name: "{{ az_resource_group_name }}"
     location: "{{ az_region_name }}"
-    tags:
-      usage: "{{ az_usage_tag_default }}"
-      critical: "{{ az_critical_tag_default }}"
-      requiredUptime: "{{ az_requireduptime_tag_default }}"
+    tags: "{{ tags }}"
+    append_tags: false
   ignore_errors: "{{ ansible_check_mode }}"
