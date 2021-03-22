@@ -8,4 +8,4 @@ spec:
     spec:
       containers:
         - name: jore4-backend-image
-          image: "mcr.microsoft.com/dotnet/core/samples:aspnetapp"
+          image: "hsldevcom/jore4-backend:latest"

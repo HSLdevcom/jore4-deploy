@@ -14,5 +14,9 @@ spec:
         paths:
           - path: /
             backend:
-              serviceName: jore4-backend
+              serviceName: jore4-frontend
               servicePort: 80
+          - path: /api
+            backend:
+              serviceName: jore4-backend
+              servicePort: 8080
