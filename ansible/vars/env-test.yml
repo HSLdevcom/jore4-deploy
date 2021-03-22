@@ -13,6 +13,7 @@ az_requireduptime_tag_default: "office hours"
 az_bastion_host_trusted_ips:
   - "194.100.20.48/28" # HSL corporate wifi (including Journey & Louvre), add more entries for remote work here when needed
   - "5.250.167.13/32" # Vincit VPN
+  - "213.255.177.137/32" # Vincit Tampere/Visiokatu 1 office
 
 # Key vault
 az_key_vault_name: "{{ az_resource_group_name }}-vault"
