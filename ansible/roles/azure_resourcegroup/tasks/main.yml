@@ -1,7 +1,7 @@
 ---
 - name: "Create common resource group for the subscription"
   azure_rm_resourcegroup:
-    name: "{{ az_project_name }}-common"
+    name: "{{ az_common_resource_group_name }}"
     location: "{{ az_region_name }}"
     tags:
       usage: "production"
