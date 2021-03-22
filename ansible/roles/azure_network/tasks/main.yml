@@ -22,6 +22,8 @@
         value: "{{ az_common_resource_group_name }}"
       privateRouteTableName:
         value: "{{ az_private_route_table_name }}"
+      enableDeletionProtection:
+        value: "{{ az_enable_deletion_protection }}"
     tags:
       ansible: "workaround"
     template: "{{ lookup('file', 'templates/network.arm.json') }}"

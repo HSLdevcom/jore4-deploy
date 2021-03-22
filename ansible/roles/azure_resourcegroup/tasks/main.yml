@@ -6,6 +6,7 @@
     tags:
       usage: "production"
       critical: "yes"
+      lock: "cannotdelete"
   ignore_errors: "{{ ansible_check_mode }}"
 
 - name: "Create the main resource group for {{ az_environment }} environment"

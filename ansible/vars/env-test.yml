@@ -8,6 +8,7 @@ subdomain: "test"
 az_usage_tag_default: "testing"
 az_critical_tag_default: "no"
 az_requireduptime_tag_default: "office hours"
+az_enable_deletion_protection: true
 
 # IP addressees that can access and modify the infrastructure
 az_bastion_host_trusted_ips:

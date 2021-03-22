@@ -96,6 +96,13 @@
         "description": "The name of the route table to use with the private subnet."
       },
       "defaultValue": "[concat(parameters('project'), '-route')]"
+    },
+    "enableDeletionProtection": {
+      "type": "bool",
+      "metadata": {
+        "description": "Whether to create a lock tag causing the resources to be protected from accidental deletion."
+      },
+      "defaultValue": "false"
     }
   },
   "variables": {
@@ -118,6 +125,14 @@
     }
   },
   "resources": [
+    {
+      "type": "Microsoft.Resources/tags",
+      "name": "default",
+      "apiVersion": "2020-06-01",
+      "properties": {
+        "tags": "[if(parameters('enableDeletionProtection'),json('{ \"lock\": \"cannotdelete\" }'),json('{}'))]"
+      }
+    },
     {
       "type": "Microsoft.Network/virtualNetworks",
       "apiVersion": "2019-11-01",
