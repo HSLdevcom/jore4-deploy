@@ -71,7 +71,7 @@ The scripts are based on HSL's [aks-based](https://gitlab.hsl.fi/platforms/aks-b
 To start the Ansible interactive shell for executing the scripts:
 
 ```
-./start-interactive-shell.sh
+./start-ansible-shell.sh
 ```
 
 This will handle the Azure login for you and start the interactive shell in a docker container. To
