@@ -8,6 +8,7 @@ function az_login {
   az login
   az account set --subscription "jore4"
   az aks get-credentials --resource-group "hsl-jore4-$1" --name "hsl-jore4-$1-cluster" --overwrite-existing
+  kubectl config set-context --current --namespace=hsl-jore4
 }
 
 function check_context {
