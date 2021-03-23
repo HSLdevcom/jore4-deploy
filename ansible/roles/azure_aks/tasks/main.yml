@@ -1,26 +1,38 @@
 ---
-- name: Create Azure Deployment for the AKS cluster
-  azure_rm_deployment:
-    resource_group: "{{ az_resource_group_name }}"
-    location: "{{ az_region_name }}"
-    name: "azure_aks"
-    parameters:
-      project:
-        value: "{{ az_project_name }}"
-      environment:
-        value: "{{ az_environment }}"
-      trustedAdminAddresses:
-        value: "{{ az_bastion_host_trusted_ips }}"
-      initialNodeCount:
-        value: "{{ az_aks_initial_node_count }}"
-    tags:
-      ansible: workaround
-    template: "{{ lookup('file', 'templates/aks.arm.json') }}"
-  register: aks_output
-- name: Show deployment outputs
-  debug:
-    var: aks_output.deployment.outputs
-  run_once: true
+- block:
+    - name: "Retrieve the jore4-platform-developers AD group id"
+      shell: "az ad group show --group jore4-platform-developers --output tsv --query objectId"
+      delegate_to: localhost
+      become: false
+      run_once: true
+      register: ad_group_id
+
+    - name: Create Azure Deployment for the AKS cluster
+      azure_rm_deployment:
+        resource_group: "{{ az_resource_group_name }}"
+        location: "{{ az_region_name }}"
+        name: "azure_aks"
+        parameters:
+          project:
+            value: "{{ az_project_name }}"
+          environment:
+            value: "{{ az_environment }}"
+          trustedAdminAddresses:
+            value: "{{ az_bastion_host_trusted_ips }}"
+          initialNodeCount:
+            value: "{{ az_aks_initial_node_count }}"
+          aadAdminGroupId:
+            value: "{{ ad_group_id.stdout }}"
+        tags:
+          ansible: workaround
+        template: "{{ lookup('file', 'templates/aks.arm.json') }}"
+      register: aks_output
+    - name: Show deployment outputs
+      debug:
+        var: aks_output.deployment.outputs
+      run_once: true
+  tags:
+    - deploy-cluster
 
 # Add missing role assignments for Application Gateway Ingress Controller managed identity
 - name: Make AGIC contributor of target Application Gateway
@@ -30,7 +42,6 @@
   run_once: true
   tags:
     - agic-preview-fixes
-    - owner-tasks
 - name: Make AGIC reader of target resource group
   command: "az role assignment create --role Reader --assignee-object-id {{ aks_output.deployment.outputs.agicPrincipalId.value }} --resource-group {{ az_resource_group_name }}"
   delegate_to: localhost
@@ -38,7 +49,6 @@
   run_once: true
   tags:
     - agic-preview-fixes
-    - owner-tasks
 - name: Make AGIC managed identity operator of target Application Gateway's linked scope
   command: "az role assignment create --role 'Managed Identity Operator' --assignee-object-id {{ aks_output.deployment.outputs.agicPrincipalId.value }} --scope {{ aks_output.deployment.outputs.appgwLinkedScopeRef.value }}"
   delegate_to: localhost
@@ -46,7 +56,6 @@
   run_once: true
   tags:
     - agic-preview-fixes
-    - owner-tasks
 
 # Add missing role assignments for ACI Connector managed identity (possibly bug with non-portal deployment, see https://github.com/Azure/AKS/issues/1894 for clues)
 - name: Make ACI Connector network contributor of target subnet
@@ -56,26 +65,3 @@
   run_once: true
   tags:
     - aci-fixes
-    - owner-tasks
-
-# Guess AKS admin group based on the subscription name
-- block:
-    - name: "Retrieve the jore4-platform-developers AD group id"
-      shell: "az ad group show --group jore4-platform-developers --output tsv --query objectId"
-      delegate_to: localhost
-      become: false
-      run_once: true
-      register: ad_group_id
-
-    - debug:
-        msg: "{{ad_group_id.stdout}}"
-
-    - name: "Attempt to assign admin group jore4-platform-developers"
-      shell: "az aks update --name {{ az_resource_group_name }}-cluster --resource-group {{ az_resource_group_name }} --aad-admin-group-object-ids {{ad_group_id.stdout}}"
-      delegate_to: localhost
-      become: false
-      run_once: true
-
-  tags:
-    - assign-admin-group
-    - owner-tasks

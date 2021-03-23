@@ -239,8 +239,20 @@ has created. If happens so, redo the Kubernetes deployment to recreate all the l
 playdev play-provision-aks.yml
 ```
 
+As the full playbook is quite long, you may use the following tags to limit the parts you want to
+execute:
+
+```
+playdev play-provision-aks.yml --tags deploy-cluster
+playdev play-provision-aks.yml --tags agic-preview-fixes
+playdev play-provision-aks.yml --tags aci-fixes
+playdev play-provision-aks.yml --tags keyvault-identity-binding
+```
+
 Requires Owner role to run as playbook assigns role bindings as well. To temporarily acquire the
 Owner role, see [Roles](#roles).
+
+As of now, only jore4-developers group are set to have access to the cluster.
 
 _Warning: you may need to rerun the playbook a few times, as some resources (e.g. managed
 identities) are created dynamically while&after Kubernetes is spinning up and the later half of the
