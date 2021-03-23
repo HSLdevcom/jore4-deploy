@@ -65,3 +65,27 @@
   run_once: true
   tags:
     - aci-fixes
+
+# Set up VMSS identity to access key-vault
+# https://azure.github.io/secrets-store-csi-driver-provider-azure/configurations/identity-access-modes/system-assigned-msi-mode/
+- block:
+    - name: "Get the name of the Virtual Machine Scale-Set for the cluster"
+      shell: "az vmss list --resource-group {{ az_resource_group_name }}-cluster-nodes --query '[].name' --output tsv"
+      register: vmss_name
+
+    - debug:
+        msg: "{{vmss_name.stdout}}"
+
+    - name: "Enable system-assigned identity for VMSS"
+      shell: "az vmss identity assign --resource-group {{ az_resource_group_name }}-cluster-nodes --name {{vmss_name.stdout}} --query 'systemAssignedIdentity' --output tsv"
+      register: vmss_identity_id
+
+    - debug:
+        msg: "{{vmss_identity_id.stdout}}"
+
+    - name: "Allow VMSS identity to get secrets from key-vault"
+      shell: "az keyvault set-policy --secret-permissions get --name {{ az_resource_group_name }}-vault --object-id {{vmss_identity_id.stdout}}"
+      register: vmss_identity
+
+  tags:
+    - keyvault-identity-binding
