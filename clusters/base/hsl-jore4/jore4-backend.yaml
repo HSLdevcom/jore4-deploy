@@ -13,14 +13,36 @@ spec:
       labels:
         app: jore4-backend
     spec:
+      restartPolicy: Always
       containers:
         - name: jore4-backend-image
           image: <replace>
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-      restartPolicy: Always
+          volumeMounts:
+            - name: secrets-store-inline
+              mountPath: "/mnt/secrets-store"
+              readOnly: true
+          env:
+            - name: SECRET_STORE_BASE_PATH
+              value: "/mnt/secrets-store"
+      volumes:
+        - name: secrets-store-inline
+          csi:
+            driver: secrets-store.csi.k8s.io
+            readOnly: true
+            volumeAttributes:
+              secretProviderClass: "jore4-backend-secret-mapping"
 ---
+# secret mapping class
+apiVersion: secrets-store.csi.x-k8s.io/v1alpha1
+kind: SecretProviderClass
+metadata:
+  name: jore4-backend-secret-mapping
+  namespace: hsl-jore4
+---
+# jore4-backend service description
 apiVersion: v1
 kind: Service
 metadata:
