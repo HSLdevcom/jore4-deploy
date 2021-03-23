@@ -38,3 +38,17 @@ spec:
   sourceRef:
     kind: GitRepository
     name: flux-repo
+---
+# monitor changes in clusters/base/secret-store-csi-driver directory
+apiVersion: kustomize.toolkit.fluxcd.io/v1beta1
+kind: Kustomization
+metadata:
+  name: secret-store-sync
+  namespace: flux-system
+spec:
+  interval: 1m
+  path: ./clusters/base/secret-store-csi-driver
+  prune: true
+  sourceRef:
+    kind: GitRepository
+    name: flux-repo
