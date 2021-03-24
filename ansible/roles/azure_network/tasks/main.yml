@@ -14,8 +14,16 @@
         value: "{{ az_project_name }}"
       environment:
         value: "{{ az_environment }}"
-      cidrPrefix:
-        value: "{{ cidr_prefix }}"
+      vnetAddrPrefix:
+        value: "{{ az_vnet_addr_prefix }}"
+      privateSubnetAddrPrefix:
+        value: "{{ az_private_subnet_addr_prefix }}"
+      privateAciSubnetAddrPrefix:
+        value: "{{ az_private_aci_subnet_addr_prefix }}"
+      publicSubnetAddrPrefix:
+        value: "{{ az_public_subnet_addr_prefix }}"
+      gatewaySubnetAddrPrefix:
+        value: "{{ az_gateway_subnet_addr_prefix }}"
       bastionTrustedAddresses:
         value: "{{ az_bastion_host_trusted_ips }}"
       commonResourceGroupName:
