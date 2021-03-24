@@ -55,6 +55,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 - Docker (with docker-compose)
 - Kubectl and Helm (for deployments to Kubernetes)
 - Fluxcd, Kustomize (for setting up automatic deployments to Kubernetes)
+- Lens (if you want a GUI for managing the Kubernetes cluster)
 
 # Development
 
@@ -318,10 +319,32 @@ was actually added as an AAD admin group to the cluster:
 `az aks show --name hsl-jore4-dev-cluster --resource-group hsl-jore4-dev --query "aadProfile"`
 If not, fix it by rerunning the Kubernetes playbook
 
+#### Binding secrets to Pods
+
+We are using [Secret Store CSI Driver](https://github.com/Azure/secrets-store-csi-driver-provider-azure)
+to bind secrets from `hsl-jore4-dev-vault` to `hsl-jore4-dev-cluster`.
+
+For authorizing the Kubernetes cluster to access the key-vault, we are using a managed identity
+for the Virtual Machine Scale-Set and set the policy in the key-vault to allow this user retrieving
+secrets. [More info](https://azure.github.io/secrets-store-csi-driver-provider-azure/configurations/identity-access-modes/system-assigned-msi-mode/)
+
+Azure article itself [suggests](https://docs.microsoft.com/en-us/azure/key-vault/general/key-vault-integrate-kubernetes)
+using Pod Identities, however that does not allow Kubernetes to run transparently as it needs the
+managed identity's clientId to be entered as parameter.
+
+To set which secrets are mapped to the Pods, use a
+[SecretProviderClass](https://azure.github.io/secrets-store-csi-driver-provider-azure/demos/standard-walkthrough/#5-deploy-secretproviderclass)
+
+The secrets are mounted as a volume and show up as read-only text files in the Pods. E.g.
+
+```sh
+$ cat /mnt/secrets-store/db-username
+dbuser
+```
+
 #### Troubleshooting AKS
 
 For troubleshooting, see [this](https://docs.microsoft.com/en-us/azure/application-gateway/ingress-controller-troubleshoot) article:
-
 
 If you see Authorization errors in the AGIC pod logs
 (`kubectl logs ingress-appgw-deployment-xxxx --namespace kube-system`), they probably originate from
