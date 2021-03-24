@@ -6,7 +6,6 @@ ssh_vnet_cidr: "{{ cidr_prefix }}.*"
 subdomain: "dev"
 
 az_usage_tag_default: "development"
-az_critical_tag_default: "no"
 az_requireduptime_tag_default: "office hours"
 
 # IP addressees that can access and modify the infrastructure
