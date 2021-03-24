@@ -14,12 +14,6 @@
         "description": "The target environment. Typically dev, test or prod."
       }
     },
-    "cidrPrefix": {
-      "type": "string",
-      "metadata": {
-        "description": "The 24 bit network address prefix for this environment. Enter first three numbers of the IP address, e.g. '10.10.0'"
-      }
-    },
     "bastionTrustedAddresses": {
       "type": "array",
       "metadata": {
@@ -41,12 +35,37 @@
       },
       "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-vnet')]"
     },
+    "vnetAddrPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The address prefix (e.g. '10.223.12.0/24') of the target VNet."
+      }
+    },
     "privateSubnetName": {
       "type": "string",
       "metadata": {
         "description": "The name of the private subnet."
       },
       "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-private')]"
+    },
+    "privateSubnetAddrPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The address prefix (e.g. '10.223.12.0/25') of the private subnet."
+      }
+    },
+    "privateAciSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the private ACI subnet."
+      },
+      "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-private-aci')]"
+    },
+    "privateAciSubnetAddrPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The address prefix (e.g. '10.223.12.128/26') of the private ACI subnet."
+      }
     },
     "publicSubnetName": {
       "type": "string",
@@ -55,12 +74,24 @@
       },
       "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-public')]"
     },
+    "publicSubnetAddrPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The address prefix (e.g. '10.223.12.232/29') of the public subnet."
+      }
+    },
     "gatewaySubnetName": {
       "type": "string",
       "metadata": {
         "description": "The name of the gateway subnet."
       },
       "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-gateway')]"
+    },
+    "gatewaySubnetAddrPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The address prefix (e.g. '10.223.12.240/28') of the gateway subnet."
+      }
     },
     "privateNsgName": {
       "type": "string",
@@ -130,13 +161,13 @@
       ],
       "properties": {
         "addressSpace": {
-          "addressPrefixes": ["[concat(parameters('cidrPrefix'), '.0/24')]"]
+          "addressPrefixes": ["[parameters('vnetAddrPrefix')]"]
         },
         "subnets": [
           {
             "name": "[parameters('privateSubnetName')]",
             "properties": {
-              "addressPrefix": "[concat(parameters('cidrPrefix'), '.0/25')]",
+              "addressPrefix": "[parameters('privateSubnetAddrPrefix')]",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('privateNsgName'))]"
               },
@@ -146,9 +177,9 @@
             }
           },
           {
-            "name": "[concat(parameters('privateSubnetName'),'-aci')]",
+            "name": "[parameters('privateAciSubnetName')]",
             "properties": {
-              "addressPrefix": "[concat(parameters('cidrPrefix'), '.128/26')]",
+              "addressPrefix": "[parameters('privateAciSubnetAddrPrefix')]",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('privateNsgName'))]"
               },
@@ -188,7 +219,7 @@
           {
             "name": "[parameters('publicSubnetName')]",
             "properties": {
-              "addressPrefix": "[concat(parameters('cidrPrefix'), '.232/29')]",
+              "addressPrefix": "[parameters('publicSubnetAddrPrefix')]",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('publicNsgName'))]"
               },
@@ -200,7 +231,7 @@
           {
             "name": "[parameters('gatewaySubnetName')]",
             "properties": {
-              "addressPrefix": "[concat(parameters('cidrPrefix'), '.240/28')]",
+              "addressPrefix": "[parameters('gatewaySubnetAddrPrefix')]",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('gatewayNsgName'))]"
               },
