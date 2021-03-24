@@ -6,7 +6,6 @@ ssh_vnet_cidr: "{{ cidr_prefix }}.*"
 subdomain: "@" # uses the jore.hsl.fi root domain
 
 az_usage_tag_default: "production"
-az_critical_tag_default: "no"
 az_requireduptime_tag_default: "always-on"
 az_enable_deletion_protection: true
 
