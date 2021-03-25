@@ -423,6 +423,9 @@ parameter is set to Enabled, other secondary hotswap instances are created in th
 Note that this setup is still in _preview_ in Azure. More information on the service here:
 https://docs.microsoft.com/en-us/azure/postgresql/flexible-server/overview
 
+Note that the subnet for the database has to exist before deployment, otherwise you'll only get
+pretty meaningless "Internal server error" and "Conflict" error messages ;)
+
 #### Database scaling
 
 Currently, Flexible-server PostgreSQL services can only use fixed-size storage without the option
