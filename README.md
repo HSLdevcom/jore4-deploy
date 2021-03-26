@@ -149,6 +149,14 @@ Creates basic network setup:
 
 The subnets can freely access resources between each other.
 
+The routing table `jore4-route` is configured on all subnets in order to be able to restrict the
+traffic between the subnets and the peered vnet hosting the jore3 database. The traffic is
+restricted by a firewall which is not part of the jore4 subscription or setup. Without setting
+the `jore4-route` table explicitly, all traffic would be routed freely between the subnet in
+question and the peered vnet hosting the jore3 database.
+
+When adding a new subnet, make sure to apply the `jore4-route` routing table to it as well.
+
 ### 2. Provisioning key vaults
 
 Run in Ansible shell:
