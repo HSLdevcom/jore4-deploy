@@ -20,8 +20,8 @@
         value: "{{ az_bastion_host_trusted_ips }}"
       commonResourceGroupName:
         value: "{{ az_common_resource_group_name }}"
-      privateRouteTableName:
-        value: "{{ az_private_route_table_name }}"
+      routeTableName:
+        value: "{{ az_route_table_name }}"
     tags:
       ansible: "workaround"
     template: "{{ lookup('file', 'templates/network.arm.json') }}"
