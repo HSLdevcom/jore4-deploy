@@ -19,7 +19,7 @@
   gather_facts: false
   tasks:
     - pause:
-        seconds: 30
+        seconds: 60
     - meta: refresh_inventory
 
 - name: "Configure bastion host to allow CA signed SSH keys for {{ az_environment }}"
