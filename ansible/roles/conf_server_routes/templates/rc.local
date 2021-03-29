@@ -1,0 +1,5 @@
+#!/bin/sh -e
+
+# add route to Jore3 test db network
+route add -net 10.218.6.0/27 gw {{ az_private_subnet_router_ip }}
+
