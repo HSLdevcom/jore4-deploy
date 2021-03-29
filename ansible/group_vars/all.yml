@@ -14,9 +14,11 @@ default_packages:
 az_route_table_name: "jore4-route"
 az_vnet_addr_prefix: "{{ cidr_prefix }}.0/24"
 az_private_subnet_addr_prefix: "{{ cidr_prefix }}.0/25"
+az_private_subnet_router_ip: "{{ cidr_prefix }}.1"  # In Azure always ".1", see https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-faq#are-there-any-restrictions-on-using-ip-addresses-within-these-subnets
 az_private_aci_subnet_addr_prefix: "{{ cidr_prefix }}.128/26"
 az_public_subnet_addr_prefix: "{{ cidr_prefix }}.232/29"
 az_gateway_subnet_addr_prefix: "{{ cidr_prefix }}.240/28"
+az_jore3_db_net: "10.218.6.0/27"
 
 # Bastion host
 az_initial_ssh_public_key: "{{ lookup('file', '~/.ssh/ansible_initial_key_rsa.pub') }}"

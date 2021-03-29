@@ -1,0 +1,9 @@
+---
+- name: copy rc.local to server for route configuration
+  template:
+    src: rc.local
+    dest: /etc/rc.local
+    mode: 0755
+
+- name: run rc.local after initial server startup
+  shell: /etc/rc.local

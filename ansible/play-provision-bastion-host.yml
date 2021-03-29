@@ -22,6 +22,14 @@
         seconds: 60
     - meta: refresh_inventory
 
+- name: "Configure bastion host routes"
+  hosts: "~.*-bastion.*"
+  user: "{{ init_user | default('hsladmin') }}"
+  gather_facts: false
+  become: true
+  roles:
+    - conf_server_routes
+
 - name: "Configure bastion host to allow CA signed SSH keys for {{ az_environment }}"
   hosts: "~.*-bastion.*"
   user: "{{ init_user | default('hsladmin') }}"
