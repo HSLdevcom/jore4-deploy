@@ -212,6 +212,7 @@ This will
 - create a virtual machine that has network interfaces in both private and public subnets of the
   vnet created by `play-provision-rg-and-nets.yml`,
 - assign a public IP to that VM's public subnet network interface,
+- configure the bastion host to route Jore3 test db traffic via the private subnet,
 - download the developer team CA public key from the common key vault and
 - install the CA public key on the bastion host to enable project members to log in.
 

@@ -1,0 +1,5 @@
+#!/bin/sh -e
+
+# add route to Jore3 test db network
+# shellcheck disable=SC1083
+route add -net {{ az_jore3_db_net }} gw {{ az_private_subnet_router_ip }}
