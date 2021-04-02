@@ -24,6 +24,8 @@
         value: "{{ az_public_subnet_addr_prefix }}"
       gatewaySubnetAddrPrefix:
         value: "{{ az_gateway_subnet_addr_prefix }}"
+      dbSubnetAddrPrefix:
+        value: "{{ az_db_subnet_addr_prefix }}"
       bastionTrustedAddresses:
         value: "{{ az_bastion_host_trusted_ips }}"
       commonResourceGroupName:

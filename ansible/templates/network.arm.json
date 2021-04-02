@@ -93,6 +93,19 @@
         "description": "The address prefix (e.g. '10.223.12.240/28') of the gateway subnet."
       }
     },
+    "dbSubnetName": {
+      "type": "string",
+      "metadata": {
+        "description": "The name of the db subnet."
+      },
+      "defaultValue": "[concat(parameters('project'), '-', parameters('environment'), '-subnet-private-db')]"
+    },
+    "dbSubnetAddrPrefix": {
+      "type": "string",
+      "metadata": {
+        "description": "The address prefix (e.g. '10.223.12.192/28') of the db subnet."
+      }
+    },
     "privateNsgName": {
       "type": "string",
       "metadata": {
@@ -197,9 +210,9 @@
             }
           },
           {
-            "name": "[concat(parameters('privateSubnetName'),'-db')]",
+            "name": "[parameters('dbSubnetName')]",
             "properties": {
-              "addressPrefix": "[concat(parameters('cidrPrefix'), '.192/28')]",
+              "addressPrefix": "[parameters('dbSubnetAddrPrefix')]",
               "networkSecurityGroup": {
                 "id": "[resourceId('Microsoft.Network/networkSecurityGroups', parameters('privateNsgName'))]"
               },
