@@ -1,0 +1,11 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: jore4-frontend
+  namespace: hsl-jore4
+spec:
+  template:
+    spec:
+      containers:
+        - name: jore4-frontend-image
+          image: "hsldevcom/jore4-frontend:latest"

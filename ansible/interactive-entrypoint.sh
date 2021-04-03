@@ -8,6 +8,7 @@
   echo 'alias playdev="ansible-playbook --inventory ./inventory/hsl-jore4.dev.azure_rm.yml --extra-vars @vars/env-dev.yml"'
   echo 'alias playtest="ansible-playbook --inventory ./inventory/hsl-jore4.test.azure_rm.yml --extra-vars @vars/env-test.yml"'
   echo 'alias playprod="ansible-playbook --inventory ./inventory/hsl-jore4.prod.azure_rm.yml --extra-vars @vars/env-prod.yml"'
+  echo 'alias playplayg="ansible-playbook --inventory ./inventory/hsl-jore4.playg.azure_rm.yml --extra-vars @vars/env-playg.yml"'
 } >>~/.bashrc
 
 # start the actual command line

@@ -1,0 +1,39 @@
+---
+# playg environment specific variables here
+az_environment: "playg"
+cidr_prefix: "10.223.28"
+ssh_vnet_cidr: "{{ cidr_prefix }}.*"
+subdomain: "playg"
+
+az_usage_tag_default: "development"
+az_requireduptime_tag_default: "office hours"
+az_enable_deletion_protection: false
+
+# IP addressees that can access and modify the infrastructure
+az_bastion_host_trusted_ips:
+  - "194.100.20.48/28" # HSL corporate wifi (including Journey & Louvre), add more entries for remote work here when needed
+  - "5.250.167.13/32" # Vincit VPN
+  - "213.255.177.137/32" # Vincit Tampere/Visiokatu 1 office
+
+# Key vault
+az_key_vault_name: "{{ az_resource_group_name }}-vault"
+az_key_vault_user: "{{ az_key_vault_name }}-user"
+
+# Application Gateway
+az_gateway_name: "{{ az_resource_group_name }}-appgw"
+az_gateway_publicip_name: "{{ az_resource_group_name }}-appgw-pip"
+
+# Kubernetes
+# Number of VMs that serve the Kubernetes cluster by default.
+# ACI is used as a temporary measure to create more nodes in case of a burst in load
+az_aks_initial_node_count: 2
+
+# Database
+az_psql_name: "{{ az_resource_group_name }}-db"
+# info about available tiers: https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/postgresql/flexible-server/concepts-compute-storage.md
+az_psql_sku_name: "Standard_D2s_v3"
+az_psql_storage_size: 131072 # megabytes
+az_psql_high_availability: "Disabled"
+az_psql_backup_retention: 7 # days
+az_psql_backup_georedundant: "Disabled"
+az_psql_admin_username: "dbadminplayg"
