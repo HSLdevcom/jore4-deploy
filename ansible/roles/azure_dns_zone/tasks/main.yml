@@ -30,7 +30,7 @@
         value: "{{ az_project_domain }}"
       subDomain:
         value: "{{ subdomain }}"
-      appGwIPAddress:
+      hostIPAddress:
         value: "{{ public_ip.stdout }}"
     tags:
       ansible: workaround
