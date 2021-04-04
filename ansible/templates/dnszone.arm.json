@@ -14,10 +14,10 @@
         "description": "The subdomain for the current environment (e.g. 'dev', 'test', '@')."
       }
     },
-    "appGwIPAddress": {
+    "hostIPAddress": {
       "type": "string",
       "metadata": {
-        "description": "The public IP address of the Application Gateway to point the subdomain to."
+        "description": "The public IP address of the host to point the subdomain to."
       }
     }
   },
@@ -43,7 +43,7 @@
         "TTL": 3600,
         "ARecords": [
           {
-            "ipv4Address": "[parameters('appGwIPAddress')]"
+            "ipv4Address": "[parameters('hostIPAddress')]"
           }
         ],
         "targetResource": {}
