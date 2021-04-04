@@ -1,0 +1,32 @@
+---
+- name: Get bastion host public IP address
+  command: "az network public-ip show \
+    --resource-group {{ az_resource_group_name }} \
+    --name {{ az_project_name }}-{{ az_environment }}-bastion-pip \
+    --output tsv --query ipAddress"
+  delegate_to: localhost
+  become: false
+  run_once: true
+  register: public_ip
+
+- debug:
+    msg: "{{ public_ip.stdout }}"
+
+- set_fact: bastion_host_dns_name="bastion.{{ subdomain }}"
+  when: bastion_host_dns_name is undefined
+
+- name: Create Azure Deployment for the bastion host DNS record
+  azure_rm_deployment:
+    resource_group: "{{ az_project_name }}-dns"
+    location: "{{ az_region_name }}"
+    name: "bastion_host_azure_dns"
+    parameters:
+      projectDomain:
+        value: "{{ az_project_domain }}"
+      subDomain:
+        value: "{{ bastion_host_dns_name }}"
+      hostIPAddress:
+        value: "{{ public_ip.stdout }}"
+    tags:
+      ansible: workaround
+    template: "{{ lookup('file', 'templates/dnszone.arm.json') }}"
