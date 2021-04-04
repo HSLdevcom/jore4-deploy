@@ -4,6 +4,7 @@ az_environment: "test"
 cidr_prefix: "10.223.31"
 ssh_vnet_cidr: "{{ cidr_prefix }}.*"
 subdomain: "test"
+bastion_host_dns_name: "bastion.{{ subdomain }}"
 
 az_usage_tag_default: "testing"
 az_requireduptime_tag_default: "office hours"
