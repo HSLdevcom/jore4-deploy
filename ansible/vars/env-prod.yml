@@ -4,6 +4,7 @@ az_environment: "prod"
 cidr_prefix: "10.223.32"
 ssh_vnet_cidr: "{{ cidr_prefix }}.*"
 subdomain: "@" # uses the jore.hsl.fi root domain
+bastion_host_dns_name: "bastion"
 
 az_usage_tag_default: "production"
 az_requireduptime_tag_default: "always-on"
