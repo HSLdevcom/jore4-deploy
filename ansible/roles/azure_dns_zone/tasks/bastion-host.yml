@@ -1,16 +1,8 @@
 ---
-- name: Create resource group for DNS zone
-  azure_rm_resourcegroup:
-    name: "{{ az_project_name }}-dns"
-    location: "{{ az_region_name }}"
-    tags:
-      usage: "production"
-  ignore_errors: "{{ ansible_check_mode }}"
-
-- name: Get Application Gateway public IP address
+- name: Get bastion host public IP address
   command: "az network public-ip show \
     --resource-group {{ az_resource_group_name }} \
-    --name {{ az_resource_group_name }}-appgw-pip \
+    --name {{ az_project_name }}-{{ az_environment }}-bastion-pip \
     --output tsv --query ipAddress"
   delegate_to: localhost
   become: false
@@ -20,7 +12,10 @@
 - debug:
     msg: "{{ public_ip.stdout }}"
 
-- name: Create Azure Deployment for the DNS zone and subdomain
+- set_fact: bastion_host_dns_name="bastion.{{ subdomain }}"
+  when: bastion_host_dns_name is undefined
+
+- name: Create Azure Deployment for the bastion host DNS record
   azure_rm_deployment:
     resource_group: "{{ az_project_name }}-dns"
     location: "{{ az_region_name }}"
@@ -29,11 +24,9 @@
       projectDomain:
         value: "{{ az_project_domain }}"
       subDomain:
-        value: "{{ subdomain }}"
+        value: "{{ bastion_host_dns_name }}"
       hostIPAddress:
         value: "{{ public_ip.stdout }}"
     tags:
       ansible: workaround
     template: "{{ lookup('file', 'templates/dnszone.arm.json') }}"
-
-- include_tasks: bastion-host.yml

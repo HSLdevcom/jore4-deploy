@@ -388,6 +388,10 @@ Will create a root dns record (`jore.hsl.fi`) and an A record ("subdomain") to p
 Application Gateway's IP address (`dev.jore.hsl.fi -> XX.XX.XX.XX`). Note that to point the root
 domain to an IP, the subdomain should be set to `"@"`
 
+Additionally, the playbook will create a DNS "A" entry for the bastion host of the environment
+(`bastion.jore.hsl.fi` for the prod environment, and e.g. `bastion.dev.jore.hsl.fi` for the dev
+environment).
+
 Note that these subdomains are not published until they are declared by HSL Administrator at the
 domain root (hsl.fi and/or hsldev.com). Domain registrations time to get active, check with
 `dig jore.hsl.fi` if it has Azure's DNS servers bound.
