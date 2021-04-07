@@ -140,6 +140,13 @@
         "description": "The name of the route table to use with all subnets."
       },
       "defaultValue": "[concat(parameters('project'), '-route')]"
+    },
+    "deployPublicNsg": {
+      "type": "bool",
+      "metadata": {
+        "description": "Whether to deploy the public NSG. If not true, creation will be omitted."
+      },
+      "defaultValue": "true"
     }
   },
   "variables": {
@@ -260,6 +267,7 @@
       }
     },
     {
+      "condition": "[parameters('deployPublicNsg')]",
       "type": "Microsoft.Network/networkSecurityGroups",
       "apiVersion": "2019-11-01",
       "name": "[parameters('publicNsgName')]",

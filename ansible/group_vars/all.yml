@@ -5,6 +5,7 @@ az_project_domain: "jore.hsl.fi"
 az_region_name: "westeurope"
 az_resource_group_name: "{{ az_project_name }}-{{ az_environment }}"
 az_common_resource_group_name: "{{ az_project_name }}-common"
+az_public_nsg_name: "{{ az_resource_group_name }}-nsg-public"
 
 #Common packages
 default_packages:
