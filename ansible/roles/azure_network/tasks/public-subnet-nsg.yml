@@ -1,0 +1,24 @@
+---
+- name: Check if the public subnet NSG exists
+  shell: "az network nsg list --resource-group {{ az_resource_group_name }} --query \"[?name=='{{ az_public_nsg_name }}'].{id:id}[0].id\""
+  register: nsg_id
+
+- debug:
+    msg: "{{ nsg_id.stdout }}"
+
+- name: Create Azure Deployment for the public subnet NSG if it does not exist yet
+  when: nsg_id.stdout == ""
+  azure_rm_deployment:
+    resource_group: "{{ az_resource_group_name }}"
+    location: "{{ az_region_name }}"
+    name: "azure_network_common"
+    parameters:
+      project:
+        value: "{{ az_project_name }}"
+      bastionTrustedAddresses:
+        value: "{{ az_bastion_host_trusted_ips }}"
+      publicNsgName:
+        value: "{{ az_public_nsg_name }}"
+    tags:
+      ansible: "workaround"
+    template: "{{ lookup('file', 'templates/public-subnet-nsg.arm.json') }}"
