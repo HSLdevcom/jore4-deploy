@@ -106,7 +106,8 @@ to do so as they have dependencies between each other.
 
 If the given resources with the same name already exist, they are overwritten with the resources
 described by the scripts. Other resources are not modified or delete unless explicitly mentioned in
-the script description.
+the script description. One exception to this is the public network security group (NSG), see
+[1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network) for details.
 
 _For simplicity, the scripts below are only showing what happens in the DEV environment. The exact
 same outcome is expected when using the `playtest` and `playprod` aliases._
@@ -155,6 +156,9 @@ Creates basic network setup:
   - `hsl-jore4-dev-subnet-gateway` (public subnet to allow access from Internet. E.g. HTTP requests)
 
 The subnets can freely access resources between each other.
+
+Note that the public network security group (NSG) is only deployed if it does not exist yet. This
+allows for manual modifications like custom firewall settings to survive later  re-deployments.
 
 The routing table `jore4-route` is configured on all subnets in order to be able to restrict the
 traffic between the subnets and the peered vnet hosting the jore3 database. The traffic is
