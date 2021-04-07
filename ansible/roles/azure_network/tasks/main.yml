@@ -4,6 +4,8 @@
     msg: "cidr_prefix {{ cidr_prefix }} is not valid. You should update the variable with a value that was reserved for your environment."
   when: not cidr_prefix is regex("[0-9]{1,3}[.][0-9]{1,3}[.][0-9]{1,3}")
 
+- include_tasks: public-subnet-nsg.yml
+
 - name: Create Azure Deployment for network
   azure_rm_deployment:
     resource_group: "{{ az_resource_group_name }}"
@@ -26,12 +28,12 @@
         value: "{{ az_gateway_subnet_addr_prefix }}"
       dbSubnetAddrPrefix:
         value: "{{ az_db_subnet_addr_prefix }}"
-      bastionTrustedAddresses:
-        value: "{{ az_bastion_host_trusted_ips }}"
       commonResourceGroupName:
         value: "{{ az_common_resource_group_name }}"
       routeTableName:
         value: "{{ az_route_table_name }}"
+      publicNsgName:
+        value: "{{ az_public_nsg_name }}"
     tags:
       ansible: "workaround"
     template: "{{ lookup('file', 'templates/network.arm.json') }}"
