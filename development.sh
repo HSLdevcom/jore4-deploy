@@ -5,7 +5,7 @@ set -eu
 function super_linter {
   echo "Running Super-Linter"
 
-  docker run --rm -e RUN_LOCAL=true -e VALIDATE_ANSIBLE=false -e VALIDATE_KUBERNETES_KUBEVAL=false -v "$(pwd)":/tmp/lint github/super-linter
+  docker run --rm -e RUN_LOCAL=true -e VALIDATE_ANSIBLE=false -e VALIDATE_KUBERNETES_KUBEVAL=false -e VALIDATE_JSCPD=false -v "$(pwd)":/tmp/lint github/super-linter
 }
 
 function toc {
