@@ -12,6 +12,28 @@
   roles:
     - fetch_db_admin_credentials
 
+- name: "Create db credentials for hasura in key-vault for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_user_credentials
+      username: "dbhasura{{ az_environment }}"
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      username_secret_name: "{{ az_resource_group_name }}-hasura-username"
+      password_secret_name: "{{ az_resource_group_name }}-hasura-password"
+      username_output_name: "hasura_username"
+      password_output_name: "hasura_password"
+
+- name: "Create db credentials for jore3 importer in key-vault for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_user_credentials
+      username: "dbjore3importer{{ az_environment }}"
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      username_secret_name: "{{ az_resource_group_name }}-jore3importer-username"
+      password_secret_name: "{{ az_resource_group_name }}-jore3importer-password"
+      username_output_name: "jore3importer_username"
+      password_output_name: "jore3importer_password"
+
 - name: "Create keyvault secret with the name for the database for {{ az_environment }}"
   hosts: localhost
   roles:
@@ -45,3 +67,7 @@
       sql_file: "./files/create-db-and-users.sql"
       psql_extra_params:
         - "-v database_name='{{ database_name }}'"
+        - "-v hasura_username='{{ hasura_username }}'"
+        - "-v hasura_password='{{ hasura_password }}'"
+        - "-v jore3importer_username='{{ jore3importer_username }}'"
+        - "-v jore3importer_password='{{ jore3importer_password }}'"

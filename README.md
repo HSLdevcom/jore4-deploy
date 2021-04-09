@@ -784,7 +784,11 @@ Preliminaries:
 
 `playdev play-configure-db-and-users.yml`
 
+- Will generate usernames and passwords and place them to `hsl-jore4-dev-vault` (`hasura-username`,
+  `hasura-password`, `jore3importer-username`, `jore3importer-password`, etc.)
 - Will set up a temporary SSH tunnel to the database
 - Will connect to the `postgres` database using db admin credentials from `hsl-jore4-dev-vault`.
   (That were generated with the database provisioning playbook)
 - Will create the `jore4dev` database in PostgreSQL
+- Will create database users for applications in the `jore4dev` database
+- Sets up permissions for these application users
