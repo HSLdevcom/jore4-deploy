@@ -16,4 +16,5 @@ az login
 echo "Set active subscription to 'jore4'..."
 az account set --subscription "jore4"
 
+docker-compose -f docker-compose.ansible.yml build
 docker-compose -f docker-compose.ansible.yml run --rm ansible ./interactive-entrypoint.sh
