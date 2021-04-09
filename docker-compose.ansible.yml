@@ -1,12 +1,14 @@
 version: "3"
 services:
   ansible:
-    image: hsldevcom/azure-ansible:1.2.1
+    build: .
     container_name: ansible
     volumes:
       - ./ansible:/etc/ansible:ro
       - ./ansible/.cache:/cache:rw
       - ~/.azure:/home/ansible/.azure:rw
+      - ~/.ssh/jore4_key_ed25519:/home/ansible/jore4_key_ed25519:ro
+      - ~/.ssh/jore4_key_ed25519-cert.pub:/home/ansible/jore4_key_ed25519-cert.pub:ro
     environment:
       SKIP_LOGIN: "true"
     networks:
