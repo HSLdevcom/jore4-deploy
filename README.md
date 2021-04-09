@@ -15,6 +15,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 - [How to Run](#how-to-run)
 - [Roles](#roles)
 - [Scripts](#scripts)
+- [Subscriptions](#subscriptions)
   - [Provisioning](#provisioning)
     - [1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network)
     - [2. Provisioning key vaults](#2-provisioning-key-vaults)
@@ -28,6 +29,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Nodes, ACI burst](#nodes-aci-burst)
       - [Application Gateway Ingress Controller](#application-gateway-ingress-controller)
       - [Accessing the Cluster](#accessing-the-cluster)
+      - [Binding secrets to Pods](#binding-secrets-to-pods)
       - [Troubleshooting AKS](#troubleshooting-aks)
     - [7. Provisioning a Domain](#7-provisioning-a-domain)
     - [8. Provisioning a Certificate](#8-provisioning-a-certificate)
@@ -45,6 +47,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Generate Flux configurations](#generate-flux-configurations)
       - [Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
       - [Troubleshooting Flux](#troubleshooting-flux)
+    - [Setting up database users](#setting-up-database-users)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -769,3 +772,19 @@ there's a wrong version deployed:
 `kubectl logs XXX-controller-YYY --namespace flux-system`
 1. see instructions and caveats from section
 [Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
+
+### Setting up database and users
+
+Preliminaries:
+
+- Bastion host is provisioned
+- Database is provisioned
+- Own SSH key is generated [based on Wiki](https://github.com/HSLdevcom/jore4/blob/main/wiki/onboarding.md)
+  to access the bastion host.
+
+`playdev play-configure-db-and-users.yml`
+
+- Will set up a temporary SSH tunnel to the database
+- Will connect to the `postgres` database using db admin credentials from `hsl-jore4-dev-vault`.
+  (That were generated with the database provisioning playbook)
+- Will create the `jore4dev` database in PostgreSQL
