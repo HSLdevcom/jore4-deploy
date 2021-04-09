@@ -66,10 +66,25 @@ format. To run it manually, use `./development.sh lint`.
 
 ## How to Run
 
-The deployment scripts are in the form of Ansible playbooks. To run the playbooks, we are using HSL's
-[hsldevcom/azure-ansible](https://gitlab.hsl.fi/developer-resources/azure-ansible) docker image.
+The deployment scripts are in the form of Ansible playbooks. To run the playbooks, we are using an
+extended version of HSL's
+[hsldevcom/azure-ansible](https://gitlab.hsl.fi/developer-resources/azure-ansible) docker image that
+also contains the `postgresql-client` package.
 
-The scripts are based on HSL's [aks-based](https://gitlab.hsl.fi/platforms/aks-based) platform model.
+The container maps the following volumes from the host machine:
+
+- `./ansible` (read-only): to expose the playbooks to Ansible
+- `./ansible/.cache` (read-write): to enable caching between runs
+- `~/.azure` (read-write): to store the Azure login context
+- `~/.ssh/jore4_key_ed25519` and `~/.ssh/jore4_key_ed25519-cert.pub` (read-only): the SSH keys of the
+  developer for accessing the bastion host. Most playbooks don't require these SSH keys; the ones that
+  do, explicitly mention it. Generate the SSH key
+  [based on Wiki](https://github.com/HSLdevcom/jore4/blob/main/wiki/onboarding.md). If you have the
+  SSH keys with a different name, edit `docker-compose.ansible.yml` and set a different path for the
+  volume mapping
+
+The playbooks are based on HSL's [aks-based](https://gitlab.hsl.fi/platforms/aks-based) platform
+model.
 
 To start the Ansible interactive shell for executing the scripts:
 
