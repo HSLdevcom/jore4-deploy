@@ -1,0 +1,71 @@
+---
+- name: Retrieve db admin credentials from keyvault for {{ az_environment }}
+  hosts: localhost
+  roles:
+    - fetch_db_admin_credentials
+
+- name: "Retrieve name of the database where the users are created to"
+  hosts: localhost
+  roles:
+    - role: fetch_keyvault_secret
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      secret_name: "{{ az_project_name }}-public-db-database"
+      output_name: "database_name"
+
+- name: "Create credentials for db user hasura in key-vault for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_user_credentials
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      username: "dbhasura{{ az_environment }}"
+      username_secret_name: "{{ az_project_name }}-hasura-username"
+      password_secret_name: "{{ az_project_name }}-hasura-password"
+      username_output_name: "hasura_username"
+      password_output_name: "hasura_password"
+
+- name: "Create credentials for db user jore3importer in key-vault for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_user_credentials
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      username: "dbjore3importer{{ az_environment }}"
+      username_secret_name: "{{ az_project_name }}-jore3importer-username"
+      password_secret_name: "{{ az_project_name }}-jore3importer-password"
+      username_output_name: "jore3importer_username"
+      password_output_name: "jore3importer_password"
+
+- name: "Create temporary tunnel to bastion host for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_ssh_tunnel
+      bastion_host_hostname: "{{ bastion_host_dns_name }}.{{ az_project_domain }}"
+      bastion_host_user: hsladmin
+      identity_file_path: /home/ansible/jore4_key_ed25519
+      remote_hostname: "{{ db_hostname }}"
+      remote_port: 5432
+      local_port: 1234
+      keep_alive_seconds: 60
+
+- name: "(Re)create db user hasura for {{ database_name }}"
+  hosts: localhost
+  tasks:
+    - community.postgresql.postgresql_user:
+        db: "{{ database_name }}"
+        name: "{{ hasura_username }}"
+        password: "{{ hasura_password }}"
+        login_host: localhost
+        port: 1234
+        login_user: "{{ db_admin_username }}"
+        login_password: "{{ db_admin_password }}"
+
+- name: "(Re)create db user jore3importer for {{ database_name }}"
+  hosts: localhost
+  tasks:
+    - community.postgresql.postgresql_user:
+        db: "{{ database_name }}"
+        name: "{{ jore3importer_username }}"
+        password: "{{ jore3importer_password }}"
+        login_host: localhost
+        port: 1234
+        login_user: "{{ db_admin_username }}"
+        login_password: "{{ db_admin_password }}"
