@@ -24,15 +24,15 @@ spec:
     objects: |
       array:
         - |
-          objectName: hsl-jore4-test-db-hostname
+          objectName: hsl-jore4-public-db-hostname
           objectAlias: db-hostname
           objectType: secret
         - |
-          objectName: hsl-jore4-test-db-admin-username
+          objectName: hsl-jore4-db-admin-username
           objectAlias: db-username
           objectType: secret
         - |
-          objectName: hsl-jore4-test-db-admin-password
+          objectName: hsl-jore4-db-admin-password
           objectAlias: db-password
           objectType: secret
     tenantId: "572a41dd-c389-4f0a-b256-aefd1bf149d7"

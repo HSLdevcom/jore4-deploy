@@ -1,0 +1,56 @@
+---
+# required input variables:
+# - keyvault_name: name of the key-vault to which the secret is created/overwritten
+# - secret_name: name of the secret to create
+# - secret_value: value of the secret
+# - output_name: name of the output variable to create
+# optional input variables:
+# - overwrite: the value of the secret will be overwritten if already exists (default: false)
+
+# Note that this is done so complicatedly, because ansible does not handle conditionals too well...
+# even if a task fails or is ignored, the "register" attribute create/set the variable
+
+- name: Initialize
+  set_fact:
+    found_existing_secret: False
+
+- block:
+    # found existing secret, let's return it!
+    - name: Try retrieving secret {{ secret_name }} from keyvault {{ keyvault_name }}
+      shell: "az keyvault secret show \
+        --vault-name {{ keyvault_name }} \
+        --name {{ secret_name }} \
+        --output tsv --query 'value'"
+      register: secret
+      ignore_errors: true
+
+    - name: Set value to output variable
+      set_fact:
+        "{{ output_name }}": "{{ secret.stdout }}"
+        found_existing_secret: True
+      when: secret.failed == False
+
+    - debug:
+        msg: "Secret was found in keyvault!"
+      when: secret.failed == False
+  when: (overwrite | default(False)) == False
+
+- block:
+    # could not find existing secret or asked to overwrite -> let's set it!
+    - name: Create or overwrite secret {{ secret_name }} in keyvault {{ keyvault_name }}
+      shell: "az keyvault secret set \
+        --vault-name {{ keyvault_name }} \
+        --name {{ secret_name }} \
+        --value '{{ secret_value }}' \
+        --output tsv --query 'value'"
+
+    - name: Set value to output variable
+      set_fact:
+        "{{ output_name }}": "{{ secret_value }}"
+
+    - debug:
+        msg: "Secret was created/overwritten!"
+  when: (overwrite | default(False)) == True or (found_existing_secret | default(False)) == False
+
+- debug:
+    var: "{{ output_name }}"
