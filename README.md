@@ -88,7 +88,6 @@ simplify running the scripts against a chosen environment.
 For some scripts, you need to temporarily elevate your role to e.g. create new role bindings for
 managed identities. You may do so [here](https://portal.azure.com/#blade/Microsoft_Azure_PIMCommon/ActivationMenuBlade/azurerbac/provider/azurerbac).
 
-
 # Scripts
 
 The following scripts either provision (create) resources to the chosen environment (dev, test,
@@ -619,7 +618,7 @@ This will:
 1. deploy Flux's Kubernetes definitions (`gotk-components.yaml`)
 1. deploy Flux's sync configurations (`gotk-sync.yaml`)
 1. Flux will automatically monitor the `main` branch or this git repository and deploy the app(s)
-specific to the stage (only hsl-jore4 for now)
+   specific to the stage (only hsl-jore4 for now)
 
 #### Generate Flux configurations
 
@@ -635,10 +634,10 @@ based on [official documentation](https://toolkit.fluxcd.io/guides/installation/
 1. log in to kubernetes (az login, az aks get-credentials... or `./kubernetes.sh login dev`)
 
 2. check that Flux prerequisites are ok in the cluster
-`flux check --pre`
+   `flux check --pre`
 
 3. generate manifests for setting up Flux system in kubernetes (monitoring controllers)
-`flux install --network-policy=false --export > clusters/base/flux-system/gotk-components.yaml`
+   `flux install --network-policy=false --export > clusters/base/flux-system/gotk-components.yaml`
 
 4. generate a manifest for this git repository to be monitored as a "source":
 
@@ -653,7 +652,7 @@ flux create source git flux-repo \
 (this will poll the `main` branch of the `jore4-deploy` repository every minute for changes)
 
 5. generate a manifest for Flux resources itself to be monitored. The monitored directory should
-have a `kustomization.yaml` file in it
+   have a `kustomization.yaml` file in it
 
 ```
 flux create kustomization flux-system-sync \
@@ -668,7 +667,7 @@ flux create kustomization flux-system-sync \
 git repository every minute.)
 
 6. generate a manifest for kubernetes app resources to be monitored. The monitored directory should
-have a `kustomization.yaml` file in it
+   have a `kustomization.yaml` file in it
 
 ```
 flux create kustomization hsl-jore4-sync \
@@ -702,13 +701,13 @@ also tested whether they are still compatible with Flux (so you didn't break the
 
 1. Create a new git branch, e.g. `feature-x`
 1. Modify the `cluster/dev/flux-system/gotk-sync.yaml` script to start monitoring this `feature-x`
-branch. Commit this change to the branch and push it to github.
+   branch. Commit this change to the branch and push it to github.
 1. As the deployed Flux at the moment is still monitoring the `main` branch, you have to manually
-redeploy the new Flux configuration with `./kubernetes deploy:flux dev` to apply changes.
+   redeploy the new Flux configuration with `./kubernetes deploy:flux dev` to apply changes.
 1. Now you can test your new Kubernetes resources by editing, commiting and pushing your changes.
-These will automatically get applied to the DEV environment.
+   These will automatically get applied to the DEV environment.
 1. Don't forget to do the same steps to set the syncing back to the `main` branch after you are
-done.
+   done.
 
 _Option no 3_
 
@@ -744,11 +743,11 @@ On some rare occasions however the Kubernetes destroy finalizer does not get cal
 namespace does not get deleted. To clean up:
 
 1. retrieve the current namespace manifest with
-`kubectl get namespace flux-system -o json > tmp.json`
+   `kubectl get namespace flux-system -o json > tmp.json`
 1. edit `tmp.json` and remove "kubernetes" from finalizers
 1. open another terminal and run `kubectl proxy`
 1. patch the cluster namespace manifest with
-`curl -k -H "Content-Type: application/json" -X PUT --data-binary @tmp.json https://localhost:8001/api/v1/namespaces/flux-system/finalize`
+   `curl -k -H "Content-Type: application/json" -X PUT --data-binary @tmp.json https://localhost:8001/api/v1/namespaces/flux-system/finalize`
 
 _Flux monitoring_
 
@@ -757,6 +756,6 @@ there's a wrong version deployed:
 
 1. wait for the reconciliation timeout (1 minutes) to pass
 1. if still a wrong version, see the Flux controller pods' logs
-`kubectl logs XXX-controller-YYY --namespace flux-system`
+   `kubectl logs XXX-controller-YYY --namespace flux-system`
 1. see instructions and caveats from section
-[Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
+   [Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
