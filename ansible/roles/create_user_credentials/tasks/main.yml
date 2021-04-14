@@ -1,0 +1,34 @@
+---
+# returns existing credentials or creates a new set in the keyvault if they don't exist yet
+# required input variables:
+# - username: the username that should be used for the credentials
+# - keyvault_name: name of the key-vault from which the secret is retrieved
+# - username_secret_name: name of the secret where the username is to be stored
+# - password_secret_name: name of the secret where the password is to be stored
+# required output variables:
+# - username_output_name: name of the output variable to create for the username
+# - password_output_name: name of the output variable to create for the password
+
+- name: "Create secret for username {{ username_secret_name }}"
+  vars:
+    # keyvault_name: (passed down directly)
+    secret_name: "{{ username_secret_name }}"
+    secret_value: "{{ username }}"
+    output_name: "{{ username_output_name }}"
+  include_role:
+    name: create_keyvault_secret
+
+- name: Generate password
+  vars:
+    output_name: "password"
+  include_role:
+    name: generate_password
+
+- name: "Create secret for password {{ password_secret_name }}"
+  vars:
+    # keyvault_name: (passed down directly)
+    secret_name: "{{ password_secret_name }}"
+    secret_value: "{{ password }}"
+    output_name: "{{ password_output_name }}"
+  include_role:
+    name: create_keyvault_secret
