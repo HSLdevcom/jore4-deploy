@@ -7,13 +7,13 @@
         - name: Try retrieving db admin username from keyvault
           shell: "az keyvault secret show \
             --vault-name {{ az_resource_group_name }}-vault \
-            --name {{ az_resource_group_name }}-db-admin-username \
+            --name {{ az_project_name }}-db-admin-username \
             --output tsv --query 'value'"
           register: db_admin_username
         - name: Try retrieving db admin password from keyvault
           shell: "az keyvault secret show \
             --vault-name {{ az_resource_group_name }}-vault \
-            --name {{ az_resource_group_name }}-db-admin-password \
+            --name {{ az_project_name }}-db-admin-password \
             --output tsv --query 'value'"
           register: db_admin_password
         - debug:
@@ -23,7 +23,7 @@
         - name: Insert default db admin username to keyvault
           shell: "az keyvault secret set \
             --vault-name {{ az_resource_group_name }}-vault \
-            --name {{ az_resource_group_name }}-db-admin-username \
+            --name {{ az_project_name }}-db-admin-username \
             --value '{{ az_psql_admin_username }}' \
             --output tsv --query 'value'"
           register: db_admin_username
@@ -33,7 +33,7 @@
         - name: Insert generated db admin password to keyvault
           shell: "az keyvault secret set \
             --vault-name {{ az_resource_group_name }}-vault \
-            --name {{ az_resource_group_name }}-db-admin-password \
+            --name {{ az_project_name }}-db-admin-password \
             --value '{{ db_admin_password.stdout }}'"
         - debug:
             msg: "Generated new credentials for db admin!"
@@ -70,8 +70,11 @@
 - debug:
     var: db_output
 
-- name: Insert db hostname to keyvault
-  shell: "az keyvault secret set \
-    --vault-name {{ az_resource_group_name }}-vault \
-    --name {{ az_resource_group_name }}-db-hostname \
-    --value '{{ db_output.deployment.outputs.serverObject.value.fullyQualifiedDomainName }}'"
+- name: "Insert db hostname to keyvault"
+  include_role:
+    name: create_keyvault_secret
+  vars:
+    keyvault_name: "{{ az_resource_group_name }}-vault"
+    secret_name: "{{ az_project_name }}-public-db-hostname"
+    secret_value: "{{ db_output.deployment.outputs.serverObject.value.fullyQualifiedDomainName }}"
+    output_name: "db_hostname"

@@ -1,0 +1,15 @@
+---
+# required input variables:
+# - keyvault_name: name of the key-vault from which the secret is retrieved
+# - secret_name: name of the secret to retrieve
+# - output_name: name of the output variable to create
+- name: Fetching secret {{ secret_name }} from keyvault {{ keyvault_name }}
+  shell: "az keyvault secret show \
+    --vault-name {{ keyvault_name }} \
+    --name {{ secret_name }} \
+    --output tsv --query 'value'"
+  register: secret_value
+
+- name: Set value to output variable
+  set_fact:
+    "{{ output_name }}": "{{ secret_value.stdout }}"
