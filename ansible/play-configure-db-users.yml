@@ -1,0 +1,49 @@
+---
+- name: Retrieve db admin credentials from keyvault for {{ az_environment }}
+  hosts: localhost
+  roles:
+    - fetch_db_admin_credentials
+
+- name: "Retrieve name of the database where the users are created to"
+  hosts: localhost
+  roles:
+    - role: fetch_keyvault_secret
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      secret_name: "{{ az_resource_group_name }}-db-database"
+      output_name: "database_name"
+
+- name: "Create temporary tunnel to bastion host for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_ssh_tunnel
+      bastion_host_hostname: "{{ bastion_host_dns_name }}.{{ az_project_domain }}"
+      bastion_host_user: hsladmin
+      identity_file_path: /home/ansible/jore4_key_ed25519
+      remote_hostname: "{{ db_hostname }}"
+      remote_port: 5432
+      local_port: 1234
+      keep_alive_seconds: 60
+
+- name: "Create db user for hasura in {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_db_user
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      db_user_name: hasura
+      # db_admin_username: (passed down directly)
+      # db_admin_password: (passed down directly)
+      db_hostname: localhost
+      db_port: 1234
+      # database_name: (passed down directly)
+
+- name: "Create db user for jore3 importer in {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_db_user
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      db_user_name: jore3importer
+      # db_admin_username: (passed down directly)
+      # db_admin_password: (passed down directly)
+      db_hostname: localhost
+      db_port: 1234
+      # database_name: (passed down directly)

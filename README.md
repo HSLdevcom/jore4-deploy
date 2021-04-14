@@ -48,6 +48,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
       - [Troubleshooting Flux](#troubleshooting-flux)
     - [Setting up database](#setting-up-database)
+    - [Setting up database users](#setting-up-database-users)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -791,3 +792,23 @@ Preliminaries:
 - Will connect to the `postgres` database within the instance using db admin credentials
   from `hsl-jore4-dev-vault`. (That were generated with the database provisioning playbook)
 - Will create the `jore4dev` database in PostgreSQL
+
+### Setting up database users
+
+Preliminaries:
+
+- Bastion host is provisioned
+- Database is provisioned
+- Own SSH key is generated [based on Wiki](https://github.com/HSLdevcom/jore4/blob/main/wiki/onboarding.md)
+  to access the bastion host.
+- `jore4dev` database is created within the database instance
+
+`playdev play-configure-db-users.yml`
+
+- Will set up a temporary SSH tunnel to the PostgreSQL instance
+- Will connect to the `jore4dev` database within the instance using db admin credentials
+  from `hsl-jore4-dev-vault`. (That were generated with the database provisioning playbook)
+- Will generate usernames and passwords and place them to `hsl-jore4-dev-vault` (`hasura-username`,
+  `hasura-password`, `jore3importer-username`, `jore3importer-password`, etc.)
+- Will create `dbhasuradev` and `dbjore3importer` database users in the `jore4dev` database
+- Sets up permissions for these application users

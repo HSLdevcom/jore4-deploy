@@ -1,0 +1,39 @@
+---
+# generates db user credentials in the key-vault and creates the user in the database
+# assumes that SSH tunnel is up towards the PostgreSQL instance
+# required input variables:
+# - db_user_name: name of the database user to be create
+# - keyvault_name: name of the key-vault where the credentials are going to be stored
+# - db_admin_username: username of the db admin user that creates the new user
+# - db_admin_password: password of the db admin user that creates the new user
+# - db_hostname: hostname of the database instance
+# - db_port: hostname for the database instance
+# - database_name: name of the database to set up the user for
+
+- name: "Create credentials for db user {{ db_user_name }} in key-vault for {{ az_environment }}"
+  include_role:
+    name: create_user_credentials
+  vars:
+    # keyvault_name: (passed down directly)
+    username: "db{{ db_user_name }}{{ az_environment }}"
+    username_secret_name: "{{ az_resource_group_name }}-{{ db_user_name }}-username"
+    password_secret_name: "{{ az_resource_group_name }}-{{ db_user_name }}-password"
+    username_output_name: "dbuser_username"
+    password_output_name: "dbuser_password"
+
+- name: "Create database and credentials in PostgreSQL for {{ az_environment }}"
+  include_role:
+    name: execute_psql_file
+  vars:
+    db_hostname: localhost
+    db_port: 1234
+    db_database: postgres
+    db_username: "{{ db_admin_username }}"
+    db_password: "{{ db_admin_password }}"
+    # Note: for now, all db users have the same CRUD access to all tables. When this changes, should
+    # create separate "./files/create-db-user-XXX.sql" scripts for all usernames
+    sql_file: "./files/create-db-user.sql"
+    psql_extra_params:
+      - "-v database_name='{{ database_name }}'"
+      - "-v username='{{ dbuser_username }}'"
+      - "-v password='{{ dbuser_password }}'"
