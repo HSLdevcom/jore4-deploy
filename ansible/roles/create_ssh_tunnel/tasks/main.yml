@@ -1,0 +1,11 @@
+---
+# required input variables:
+# - bastion_host_hostname: hostname or IP address of the bastion host
+# - bastion_host_user: acting user on the bastion host
+# - identity_file_path: the path where the identity file could be found from
+# - remote_hostname: remote hostname or IP address the tunnel should point to
+# - remote_port: remote port the tunnel should map
+# - local_port: local port the tunneled service should be available from
+# - keep_alive_seconds: how many seconds the tunnel should be up
+- name: Create SSH tunnel and keep alive for {{keep_alive_seconds}} seconds
+  shell: 'ssh -o "StrictHostKeyChecking no" -f -n -i "{{ identity_file_path }}" -L *:{{ local_port }}:{{ remote_hostname }}:{{ remote_port }} {{ bastion_host_user }}@{{ bastion_host_hostname }} sleep {{ keep_alive_seconds }}'

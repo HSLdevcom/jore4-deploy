@@ -1,0 +1,30 @@
+---
+# required input variables:
+# - db_hostname: hostname of the database server
+# - db_port: database port
+# - db_database: database to connect to
+# - db_username: user that accesses the database
+# - db_password: password of the database user
+# - sql_file: the sql command that is executed
+# optional input variables:
+# - psql_extra_params: list of extra command line params that are used, e.g. ["-v date_param='2020-01-01'"]
+
+- block:
+    - name: Initialize empty psql params string
+      when: psql_extra_params is undefined
+      set_fact:
+        psql_extra_params_str: ""
+
+    - name: Join psql extra params to a command line string
+      when: psql_extra_params is defined
+      set_fact:
+        psql_extra_params_str: "{{ psql_extra_params | join(' ') }}"
+
+- name: "Run psql command on {{ db_hostname }}:{{ db_port }}"
+  shell: 'psql -U {{ db_username }} -d {{ db_database }} -h {{ db_hostname }} -p {{ db_port }} {{ psql_extra_params_str }} --echo-all -f "{{ sql_file }}"'
+  environment:
+    PGPASSWORD: "{{ db_password }}"
+  register: psql_output
+
+- debug:
+    var: psql_output.stdout_lines
