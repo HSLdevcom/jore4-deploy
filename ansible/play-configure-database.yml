@@ -1,0 +1,39 @@
+---
+- name: Retrieve db admin credentials from keyvault for {{ az_environment }}
+  hosts: localhost
+  roles:
+    - fetch_db_admin_credentials
+
+- name: "Create keyvault secret with the name for the database for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_keyvault_secret
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      secret_name: "{{ az_resource_group_name }}-db-database"
+      secret_value: "jore4{{ az_environment }}"
+      output_name: "database_name"
+
+- name: "Create temporary tunnel to bastion host for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: create_ssh_tunnel
+      bastion_host_hostname: "{{ bastion_host_dns_name }}.{{ az_project_domain }}"
+      bastion_host_user: hsladmin
+      identity_file_path: /home/ansible/jore4_key_ed25519
+      remote_hostname: "{{ db_hostname }}"
+      remote_port: 5432
+      local_port: 1234
+      keep_alive_seconds: 60
+
+- name: "Create database and credentials in PostgreSQL for {{ az_environment }}"
+  hosts: localhost
+  roles:
+    - role: execute_psql_file
+      db_hostname: localhost
+      db_port: 1234
+      db_database: postgres
+      db_username: "{{ db_admin_username }}"
+      db_password: "{{ db_admin_password }}"
+      sql_file: "./files/create-database.sql"
+      psql_extra_params:
+        - "-v database_name='{{ database_name }}'"

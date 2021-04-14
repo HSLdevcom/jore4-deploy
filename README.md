@@ -47,6 +47,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Generate Flux configurations](#generate-flux-configurations)
       - [Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
       - [Troubleshooting Flux](#troubleshooting-flux)
+    - [Setting up database](#setting-up-database)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -774,3 +775,19 @@ there's a wrong version deployed:
    `kubectl logs XXX-controller-YYY --namespace flux-system`
 1. see instructions and caveats from section
    [Deploying things manually to the Kubernetes cluster](#deploying-things-manually-to-the-kubernetes-cluster)
+
+### Setting up database
+
+Preliminaries:
+
+- Bastion host is provisioned
+- Database is provisioned
+- Own SSH key is generated [based on Wiki](https://github.com/HSLdevcom/jore4/blob/main/wiki/onboarding.md)
+  to access the bastion host.
+
+`playdev play-configure-database.yml`
+
+- Will set up a temporary SSH tunnel to the PostgreSQL instance
+- Will connect to the `postgres` database within the instance using db admin credentials
+  from `hsl-jore4-dev-vault`. (That were generated with the database provisioning playbook)
+- Will create the `jore4dev` database in PostgreSQL

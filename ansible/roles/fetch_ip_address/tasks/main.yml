@@ -1,0 +1,15 @@
+---
+# required input variables:
+# - resource_group: name of the resource group where the public IP address is found
+# - pip_name: name public IP address resource
+# - output_name: name of the output variable to create
+- name: Get IP address {{ pip_name }}
+  command: "az network public-ip show \
+    --resource-group {{ resource_group }} \
+    --name {{ pip_name }} \
+    --output tsv --query ipAddress"
+  register: public_ip
+
+- name: Set value to output variable
+  set_fact:
+    "{{ output_name }}": "{{ public_ip.stdout }}"
