@@ -12,8 +12,9 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 
 - [Preliminaries](#preliminaries)
 - [Development](#development)
-- [How to Run](#how-to-run)
-- [Roles](#roles)
+  - [How to Run](#how-to-run)
+  - [Subscriptions](#subscriptions)
+  - [Roles](#roles)
 - [Scripts](#scripts)
   - [Provisioning](#provisioning)
     - [1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network)
@@ -28,6 +29,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Nodes, ACI burst](#nodes-aci-burst)
       - [Application Gateway Ingress Controller](#application-gateway-ingress-controller)
       - [Accessing the Cluster](#accessing-the-cluster)
+      - [Binding secrets to Pods](#binding-secrets-to-pods)
       - [Troubleshooting AKS](#troubleshooting-aks)
     - [7. Provisioning a Domain](#7-provisioning-a-domain)
     - [8. Provisioning a Certificate](#8-provisioning-a-certificate)
@@ -62,7 +64,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
 When making changes to this codebase, CI automatically runs Github [Super-Linter](https://github.com/github/super-linter) to check the code
 format. To run it manually, use `./development.sh lint`.
 
-# How to Run
+## How to Run
 
 The deployment scripts are in the form of Ansible playbooks. To run the playbooks, we are using HSL's
 [hsldevcom/azure-ansible](https://gitlab.hsl.fi/developer-resources/azure-ansible) docker image.
@@ -81,11 +83,19 @@ exit the shell, just type `exit`.
 There are preconfigured aliases (`playdev`, `playtest`, `playprod`) in the interactive shell to
 simplify running the scripts against a chosen environment.
 
-# Roles
+## Subscriptions
+
+When first logging in to Azure with `az login` (e.g. for your Ansible scripts or for Kubernetes),
+your subscription by default will be pointed to the HSL default subscription. To be able to create
+and view resources in the JORE4 subscription, you have to point your Azure CLI to the proper
+context by using: `az account set --subscription "jore4"`
+
+Note that `start-ansible-shell.sh` and `kubernetes.sh` automatically does this for you.
+
+## Roles
 
 For some scripts, you need to temporarily elevate your role to e.g. create new role bindings for
 managed identities. You may do so [here](https://portal.azure.com/#blade/Microsoft_Azure_PIMCommon/ActivationMenuBlade/azurerbac/provider/azurerbac).
-
 
 # Scripts
 
@@ -100,14 +110,9 @@ the script description.
 _For simplicity, the scripts below are only showing what happens in the DEV environment. The exact
 same outcome is expected when using the `playtest` and `playprod` aliases._
 
-# Subscriptions
+Note that in ARM deployments, the `ansible: workaround` tag has to be used in order to prevent the
+removal of all tags of the resource group due to a bug in the ansible ARM plugin.
 
-When first logging in to Azure with `az login` (e.g. for your Ansible scripts or for Kubernetes),
-your subscription by default will be pointed to the HSL default subscription. To be able to create
-and view resources in the JORE4 subscription, you have to point your Azure CLI to the proper
-context by using: `az account set --subscription "jore4"`
-
-Note that `start-ansible-shell.sh` and `kubernetes.sh` automatically does this for you.
 
 ## Provisioning
 
