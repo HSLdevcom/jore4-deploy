@@ -2,7 +2,7 @@
 - name: Try retrieving db hostname from keyvault
   vars:
     keyvault_name: "{{ az_resource_group_name }}-vault"
-    secret_name: "{{ az_resource_group_name }}-db-hostname"
+    secret_name: "{{ az_project_name }}-public-db-hostname"
     output_name: "db_hostname"
   include_role:
     name: fetch_keyvault_secret
@@ -10,7 +10,7 @@
 - name: Try retrieving db admin username from keyvault
   vars:
     keyvault_name: "{{ az_resource_group_name }}-vault"
-    secret_name: "{{ az_resource_group_name }}-db-admin-username"
+    secret_name: "{{ az_project_name }}-db-admin-username"
     output_name: "db_admin_username"
   include_role:
     name: fetch_keyvault_secret
@@ -18,7 +18,7 @@
 - name: Try retrieving db admin password from keyvault
   vars:
     keyvault_name: "{{ az_resource_group_name }}-vault"
-    secret_name: "{{ az_resource_group_name }}-db-admin-password"
+    secret_name: "{{ az_project_name }}-db-admin-password"
     output_name: "db_admin_password"
   include_role:
     name: fetch_keyvault_secret

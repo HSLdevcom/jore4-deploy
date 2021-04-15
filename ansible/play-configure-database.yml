@@ -9,7 +9,7 @@
   roles:
     - role: create_keyvault_secret
       keyvault_name: "{{ az_resource_group_name }}-vault"
-      secret_name: "{{ az_resource_group_name }}-db-database"
+      secret_name: "{{ az_project_name }}-public-db-database"
       secret_value: "jore4{{ az_environment }}"
       output_name: "database_name"
 

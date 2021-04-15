@@ -16,8 +16,8 @@
   vars:
     # keyvault_name: (passed down directly)
     username: "db{{ db_user_name }}{{ az_environment }}"
-    username_secret_name: "{{ az_resource_group_name }}-{{ db_user_name }}-username"
-    password_secret_name: "{{ az_resource_group_name }}-{{ db_user_name }}-password"
+    username_secret_name: "{{ az_project_name }}-{{ db_user_name }}-username"
+    password_secret_name: "{{ az_project_name }}-{{ db_user_name }}-password"
     username_output_name: "dbuser_username"
     password_output_name: "dbuser_password"
 
