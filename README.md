@@ -16,7 +16,6 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
   - [Subscriptions](#subscriptions)
   - [Roles](#roles)
 - [Scripts](#scripts)
-- [Subscriptions](#subscriptions)
   - [Provisioning](#provisioning)
     - [1. Provisioning resource groups and network](#1-provisioning-resource-groups-and-network)
     - [2. Provisioning key vaults](#2-provisioning-key-vaults)
