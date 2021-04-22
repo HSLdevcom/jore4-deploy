@@ -318,22 +318,6 @@
             }
           },
           {
-            "name": "allow_HTTP",
-            "properties": {
-              "protocol": "TCP",
-              "sourcePortRange": "*",
-              "destinationPortRange": "80",
-              "destinationAddressPrefix": "*",
-              "access": "Allow",
-              "priority": 150,
-              "direction": "Inbound",
-              "sourcePortRanges": [],
-              "destinationPortRanges": [],
-              "sourceAddressPrefix": "*",
-              "destinationAddressPrefixes": []
-            }
-          },
-          {
             "name": "allow_Azure",
             "properties": {
               "protocol": "TCP",
