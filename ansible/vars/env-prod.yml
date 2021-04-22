@@ -24,6 +24,12 @@ az_key_vault_user: "{{ az_key_vault_name }}-user"
 az_gateway_name: "{{ az_resource_group_name }}-appgw"
 az_gateway_publicip_name: "{{ az_resource_group_name }}-appgw-pip"
 
+# IP addresses that can access the hosted website
+az_gateway_trusted_ips:
+  - "194.100.20.48/28" # HSL corporate wifi (including Journey & Louvre), add more entries for remote work here when needed
+  - "5.250.167.13/32" # Vincit VPN
+  - "213.255.177.137/32" # Vincit Tampere/Visiokatu 1 office
+
 # Kubernetes
 # Number of VMs that serve the Kubernetes cluster by default.
 # ACI is used as a temporary measure to create more nodes in case of a burst in load
