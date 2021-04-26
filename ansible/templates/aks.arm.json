@@ -86,7 +86,7 @@
     {
       "name": "[parameters('clusterName')]",
       "type": "Microsoft.ContainerService/managedClusters",
-      "apiVersion": "2020-11-01",
+      "apiVersion": "2021-03-01",
       "location": "[parameters('location')]",
       "sku": {
         "name": "Basic",
@@ -96,6 +96,7 @@
         "type": "SystemAssigned"
       },
       "properties": {
+        "kubernetesVersion": "1.19.9",
         "dnsPrefix": "[concat(parameters('clusterName'),'-dns')]",
         "agentPoolProfiles": [
           {
