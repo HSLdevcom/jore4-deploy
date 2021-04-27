@@ -21,6 +21,13 @@
       },
       "defaultValue": ["194.100.20.48/28"]
     },
+    "gatewayTrustedAddresses": {
+      "type": "array",
+      "metadata": {
+        "description": "The IP addresses allowed to connect to the service."
+      },
+      "defaultValue": ["194.100.20.48/28"]
+    },
     "location": {
       "type": "string",
       "metadata": {
@@ -144,7 +151,14 @@
     "deployPublicNsg": {
       "type": "bool",
       "metadata": {
-        "description": "Whether to deploy the public NSG. If not true, creation will be omitted."
+        "description": "Whether to deploy the public NSG. If true, existing NSG will be overwritten."
+      },
+      "defaultValue": "true"
+    },
+    "deployGatewayNsg": {
+      "type": "bool",
+      "metadata": {
+        "description": "Whether to deploy the application gateway NSG. If true, existing NSG will be overwritten."
       },
       "defaultValue": "true"
     }
@@ -295,6 +309,7 @@
       }
     },
     {
+      "condition": "[parameters('deployGatewayNsg')]",
       "type": "Microsoft.Network/networkSecurityGroups",
       "apiVersion": "2019-11-01",
       "name": "[parameters('gatewayNsgName')]",
@@ -313,7 +328,7 @@
               "direction": "Inbound",
               "sourcePortRanges": [],
               "destinationPortRanges": [],
-              "sourceAddressPrefix": "*",
+              "sourceAddressPrefixes": "[parameters('gatewayTrustedAddresses')]",
               "destinationAddressPrefixes": []
             }
           },
