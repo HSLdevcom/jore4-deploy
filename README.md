@@ -30,6 +30,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
       - [Application Gateway Ingress Controller](#application-gateway-ingress-controller)
       - [Accessing the Cluster](#accessing-the-cluster)
       - [Binding secrets to Pods](#binding-secrets-to-pods)
+      - [Updating AKS](#updating-aks)
       - [Troubleshooting AKS](#troubleshooting-aks)
     - [7. Provisioning a Domain](#7-provisioning-a-domain)
     - [8. Provisioning a Certificate](#8-provisioning-a-certificate)
@@ -376,6 +377,25 @@ dbuser
 
 To help applications finding the secrets, the `SECRET_STORE_BASE_PATH` environment variable is set
 to point to the directory containing the secret files (`/mnt/secret-store`)
+
+#### Updating AKS
+
+The `aks.arm.json` ARM template contains the `kubernetesVersion` parameter with which you can set the
+desired version of Kubernetes to the cluster. However you cannot jump versions, you have to do the
+update one version at a time. For example, from version `1.18.14` you have to upgrade first to
+`1.19.9` before you can upgrade to `1.20.5`
+
+To find out the current (DEV) cluster's version, use
+`az aks show --name hsl-jore4-dev-cluster --resource-group hsl-jore4-dev --query "kubernetesVersion"`
+
+To find out what versions are available in Azure and what upgrade steps are available, use
+`az aks get-versions --location westeurope --output table`
+
+Every time you upgrade to a new version of Kubernetes, you should test (e.g. in the playground
+environment) that the CRDs and applications are still compatible, the cluster still deploys without
+issues. More information on deploying to Kubernetes at
+[jore4-flux](https://github.com/HSLdevcom/jore4-flux). In case of incompatibility or deprecation,
+you have to update the given resource to use the latest Kubernetes API.
 
 #### Troubleshooting AKS
 
