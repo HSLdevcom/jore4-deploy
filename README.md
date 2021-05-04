@@ -380,10 +380,10 @@ to point to the directory containing the secret files (`/mnt/secret-store`)
 
 #### Updating AKS
 
-The `aks.arm.json` ARM template contains the `kubernetesVersion` parameter with which you can set the
-desired version of Kubernetes to the cluster. However you cannot jump versions, you have to do the
-update one version at a time. For example, from version `1.18.14` you have to upgrade first to
-`1.19.9` before you can upgrade to `1.20.5`
+The `aks.arm.json` ARM template contains the `kubeVersion` parameter with which you can set the
+desired version for both the Kubernetes Service and the Node Pools. However you cannot jump
+versions, you have to do the update one version at a time. For example, from version `1.18.14` you
+have to upgrade first to `1.19.9` before you can upgrade to `1.20.5`
 
 To find out the current (DEV) cluster's version, use
 `az aks show --name hsl-jore4-dev-cluster --resource-group hsl-jore4-dev --query "kubernetesVersion"`

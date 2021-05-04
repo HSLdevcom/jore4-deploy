@@ -74,6 +74,13 @@
       "metadata": {
         "description": "The id of the admin group that should have access to the cluster. (e.g. jore4-developers)"
       }
+    },
+    "kubeVersion": {
+      "type": "string",
+      "metadata": {
+        "description": "Kubernetes version to be used for the AKS service and in the node pool"
+      },
+      "defaultValue": "1.20.5"
     }
   },
   "functions": [],
@@ -96,10 +103,11 @@
         "type": "SystemAssigned"
       },
       "properties": {
-        "kubernetesVersion": "1.20.5",
+        "kubernetesVersion": "[parameters('kubeVersion')]",
         "dnsPrefix": "[concat(parameters('clusterName'),'-dns')]",
         "agentPoolProfiles": [
           {
+            "orchestratorVersion": "[parameters('kubeVersion')]",
             "name": "system",
             "count": "[parameters('initialNodeCount')]",
             "vmSize": "[parameters('vmSize')]",
