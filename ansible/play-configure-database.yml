@@ -31,6 +31,8 @@
     - community.postgresql.postgresql_db:
         name: "{{ database_name }}"
         encoding: UTF-8
+        lc_collate: fi_FI.UTF-8
+        lc_ctype: fi_FI.UTF-8
         template: template0
         login_host: localhost
         port: 1234
