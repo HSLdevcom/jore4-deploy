@@ -18,8 +18,8 @@
     - role: create_user_credentials
       keyvault_name: "{{ az_resource_group_name }}-vault"
       username: "dbhasura{{ az_environment }}"
-      username_secret_name: "{{ az_project_name }}-hasura-username"
-      password_secret_name: "{{ az_project_name }}-hasura-password"
+      username_secret_name: "{{ az_project_name }}-db-hasura-username"
+      password_secret_name: "{{ az_project_name }}-db-hasura-password"
       username_output_name: "hasura_username"
       password_output_name: "hasura_password"
 
@@ -29,8 +29,8 @@
     - role: create_user_credentials
       keyvault_name: "{{ az_resource_group_name }}-vault"
       username: "dbjore3importer{{ az_environment }}"
-      username_secret_name: "{{ az_project_name }}-jore3importer-username"
-      password_secret_name: "{{ az_project_name }}-jore3importer-password"
+      username_secret_name: "{{ az_project_name }}-db-jore3importer-username"
+      password_secret_name: "{{ az_project_name }}-db-jore3importer-password"
       username_output_name: "jore3importer_username"
       password_output_name: "jore3importer_password"
 

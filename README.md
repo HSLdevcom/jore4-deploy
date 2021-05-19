@@ -591,8 +591,8 @@ Preliminaries:
 - Will set up a temporary SSH tunnel to the PostgreSQL instance
 - Will connect to the `jore4dev` database within the instance using db admin credentials
   from `hsl-jore4-dev-vault`. (That were generated with the database provisioning playbook)
-- Will generate usernames and passwords and place them to `hsl-jore4-dev-vault` (`hasura-username`,
-  `hasura-password`, `jore3importer-username`, `jore3importer-password`, etc.)
+- Will generate usernames and passwords and place them to `hsl-jore4-dev-vault` (`db-hasura-username`,
+  `db-hasura-password`, `db-jore3importer-username`, `db-jore3importer-password`, etc.)
 - Will create `dbhasuradev` and `dbjore3importer` database users in the `jore4dev` database
 - Sets up permissions for these application users
 
