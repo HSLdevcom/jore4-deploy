@@ -41,6 +41,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
   - [Configurations](#configurations)
     - [Setting up database](#setting-up-database)
     - [Setting up database users](#setting-up-database-users)
+    - [Configuring some Kubernetes services](#configuring-some-kubernetes-services)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -594,3 +595,12 @@ Preliminaries:
   `hasura-password`, `jore3importer-username`, `jore3importer-password`, etc.)
 - Will create `dbhasuradev` and `dbjore3importer` database users in the `jore4dev` database
 - Sets up permissions for these application users
+
+### Configuring some Kubernetes services
+
+Sets up necessary configurations that are required by Kubernetes services to run.
+
+`playdev play-configure-kubernetes-services.yml`
+
+- Creates admin secret for Hasura service to the DEV key-vault with the name
+  `hsl-jore4-hasura-admin-secret`.

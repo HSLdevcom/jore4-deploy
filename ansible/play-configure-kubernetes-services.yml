@@ -1,0 +1,15 @@
+---
+- name: Generate admin secret for Hasura
+  hosts: localhost
+  roles:
+    - role: generate_password
+      output_name: "hasura_admin_secret"
+
+- name: Insert Hasura admin secret to key-vault
+  hosts: localhost
+  roles:
+    - role: create_keyvault_secret
+      keyvault_name: "{{ az_resource_group_name }}-vault"
+      secret_name: "{{ az_project_name }}-hasura-admin-secret"
+      secret_value: "{{ hasura_admin_secret }}"
+      output_name: "hasura_admin_secret"
