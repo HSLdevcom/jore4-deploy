@@ -2,7 +2,7 @@
 # required input variables:
 # - output_name: name of the output variable to create
 - name: Generate password
-  shell: "cat /dev/urandom | tr -dc 'a-zA-Z0-9_!#@^' | fold -w 16 | head -n 1"
+  shell: "cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 30 | head -n 1"
   register: password_value
 
 - name: Set value to output variable
