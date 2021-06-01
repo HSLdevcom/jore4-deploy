@@ -58,6 +58,21 @@
         login_user: "{{ db_admin_username }}"
         login_password: "{{ db_admin_password }}"
 
+# hasura needs to have a few settings set up in the database to run. It cannot set these up
+# automatically by itself as they would need superuser permissions, which we cannot give in Azure
+# https://hasura.io/docs/latest/graphql/core/deployment/postgres-requirements.html
+- name: Set up some postgresql settings for hasura
+  hosts: localhost
+  tasks:
+    - community.postgresql.postgresql_query:
+        db: "{{ database_name }}"
+        login_user: "{{ db_admin_username }}"
+        login_password: "{{ db_admin_password }}"
+        login_host: localhost
+        port: 1234
+        path_to_script: "files/hasura-db-setup.sql"
+        as_single_query: yes
+
 - name: "(Re)create db user jore3importer for {{ database_name }}"
   hosts: localhost
   tasks:
