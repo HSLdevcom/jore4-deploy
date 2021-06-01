@@ -36,7 +36,7 @@ Deployment scripts for provisioning and configuring JORE4 infrastructure in Azur
     - [8. Provisioning a Certificate](#8-provisioning-a-certificate)
     - [9. Provisioning a Database](#9-provisioning-a-database)
       - [Database scaling](#database-scaling)
-      - [DB users](#db-users)
+      - [DB admin user](#db-admin-user)
       - [Connecting to the database](#connecting-to-the-database)
   - [Configurations](#configurations)
     - [Setting up database](#setting-up-database)
@@ -200,6 +200,9 @@ If the play complains about an existing soft-deleted Key Vault, re-run the play 
 
 _Note that key vault's access policies are reset whenever you run this playbook. So if you manually
 added access policies, they will disappear. This is a limitation of Azure (4.2.2020)._
+
+_Note that when rerunning this playbook, the vault-user binding with AKS breaks. To fix it, you need
+to rerun the aks provisioning playbook_
 
 ### 3. Provisioning a log workspace
 
@@ -533,13 +536,10 @@ this might result in a minute-long downtime while the db server is restarted.
 More information on scaling here:
 https://github.com/MicrosoftDocs/azure-docs/blob/master/articles/postgresql/flexible-server/concepts-compute-storage.md#scale-resources
 
-#### DB users
+#### DB admin user
 
 The playbook checks whether there are existing credentials found for the DB admin user from the
 `hsl-jore4-dev-vault`. If not, they get generated and placed to the key-vault automatically.
-
-TODO: currently we only have an admin user for the database, it's a follow-up task to create
-application-specific users that are meant to actually run the database queries.
 
 #### Connecting to the database
 
@@ -593,6 +593,8 @@ Preliminaries:
   from `hsl-jore4-dev-vault`. (That were generated with the database provisioning playbook)
 - Will generate usernames and passwords and place them to `hsl-jore4-dev-vault` (`db-hasura-username`,
   `db-hasura-password`, `db-jore3importer-username`, `db-jore3importer-password`, etc.)
+- The generated passwords will not contain special characters as they cause issues when concatenating
+  them into a connection string. However they are pretty long to make sure they are secure.
 - Will create `dbhasuradev` and `dbjore3importer` database users in the `jore4dev` database
 - Sets up permissions for these application users
 
