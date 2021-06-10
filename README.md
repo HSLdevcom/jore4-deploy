@@ -422,6 +422,8 @@ The following resources and resource group are created:
 
 - `hsl-jore4-dns` resource group:
   - `jore.hsl.fi` is the DNS zone for the application
+- `hsl-jore4-dev` resource group:
+  - `dev.postgres.database.azure.com` is the private DNS zone for the PostgreSQL database
 
 Will create a root dns record (`jore.hsl.fi`) and an A record ("subdomain") to point to the
 Application Gateway's IP address (`dev.jore.hsl.fi -> XX.XX.XX.XX`). Note that to point the root
@@ -437,6 +439,11 @@ domain root (hsl.fi and/or hsldev.com). Domain registrations time to get active,
 
 Note that this playbook does not delete other subdomains. If you e.g. change a subdomain name, you
 have to manually delete the obsolete A record (e.g. from Azure Portal)
+
+This playbook also creates a private DNS zone (`dev.postgres.database.azure.com`) and links it to the
+environment's virtual network (`hsl-jore4-dev-vnet`). This is used for internal service discovery
+for PostgreSQL database. Read more about the subject
+[here](https://docs.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-networking#private-dns-zone-and-vnet-peering).
 
 Note that you should to configure the Kubernetes ingress such that it only listens to requests from
 the given hostname (in the ingress rules spec should specify a hostname):
@@ -524,6 +531,9 @@ https://docs.microsoft.com/en-us/azure/postgresql/flexible-server/overview
 
 Note that the subnet for the database has to exist before deployment, otherwise you'll only get
 pretty meaningless "Internal server error" and "Conflict" error messages ;)
+
+Note that the private DNS zone should be already provisioned so that the database can reserve its
+own subdomain
 
 #### Database scaling
 

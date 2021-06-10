@@ -2,6 +2,9 @@
 #Common project parameters
 az_project_name: "hsl-jore4"
 az_project_domain: "jore.hsl.fi"
+# note that it must end with "postgres.database.azure.com"
+# https://docs.microsoft.com/en-us/azure/postgresql/flexible-server/concepts-networking#private-dns-zone-and-vnet-peering
+az_database_internal_domain: "{{ az_environment }}.postgres.database.azure.com"
 az_region_name: "westeurope"
 az_resource_group_name: "{{ az_project_name }}-{{ az_environment }}"
 az_common_resource_group_name: "{{ az_project_name }}-common"

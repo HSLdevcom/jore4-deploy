@@ -1,3 +1,4 @@
 ---
 - include_tasks: env-dns-zone.yml
 - include_tasks: bastion-host-dns.yml
+- include_tasks: env-db-dns-zone.yml

@@ -125,18 +125,28 @@
       "metadata": {
         "description": "The tag describing the required lock."
       }
+    },
+    "databaseInternalDomain": {
+      "type": "string",
+      "metadata": {
+        "description": "Domain name for the database private DNS zone."
+      }
     }
   },
   "variables": {
     "dbSubnetRef": "[resourceId('Microsoft.Network/virtualNetworks/subnets', parameters('vnetName'), parameters('dbSubnetName'))]",
-    "vnetData": {
+    "privateDnsZoneRef": "[resourceId('Microsoft.Network/privateDnsZones', parameters('databaseInternalDomain'))]",
+    "delegatedSubnetArguments": {
       "subnetArmResourceId": "[variables('dbSubnetRef')]"
+    },
+    "privateDnsZoneArguments": {
+      "privateDnsZoneArmResourceId": "[variables('privateDnsZoneRef')]"
     }
   },
   "resources": [
     {
       "type": "Microsoft.DBforPostgreSQL/flexibleServers",
-      "apiVersion": "2020-02-14-privatepreview",
+      "apiVersion": "2020-02-14-preview",
       "location": "[parameters('location')]",
       "name": "[parameters('serverName')]",
       "properties": {
@@ -144,7 +154,8 @@
         "administratorLogin": "[parameters('administratorLogin')]",
         "administratorLoginPassword": "[parameters('administratorLoginPassword')]",
         "publicNetworkAccess": "Disabled",
-        "DelegatedSubnetArguments": "[variables('vnetData')]",
+        "DelegatedSubnetArguments": "[variables('delegatedSubnetArguments')]",
+        "PrivateDnsZoneArguments": "[variables('privateDnsZoneArguments')]",
         "haEnabled": "[parameters('haEnabled')]",
         "storageProfile": {
           "storageMB": "[parameters('storageSizeMB')]",

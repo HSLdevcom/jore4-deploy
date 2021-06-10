@@ -62,6 +62,8 @@
         value: "{{ az_psql_backup_retention }}"
       geoRedundantBackup:
         value: "{{ az_psql_backup_georedundant }}"
+      databaseInternalDomain:
+        value: "{{ az_database_internal_domain }}"
     tags:
       ansible: workaround
     template: "{{ lookup('file', 'templates/database.arm.json') }}"

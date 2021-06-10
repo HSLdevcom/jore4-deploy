@@ -1,0 +1,16 @@
+---
+- name: Create Azure Deployment for the database private DNS zone and virtual network link for {{ az_environment }}
+  azure_rm_deployment:
+    resource_group: "{{ az_resource_group_name }}"
+    location: "{{ az_region_name }}"
+    name: "azure_private_dns_zones"
+    parameters:
+      project:
+        value: "{{ az_project_name }}"
+      environment:
+        value: "{{ az_environment }}"
+      databaseInternalDomain:
+        value: "{{ az_database_internal_domain }}"
+    tags:
+      ansible: workaround
+    template: "{{ lookup('file', 'templates/dbdnszone.arm.json') }}"
